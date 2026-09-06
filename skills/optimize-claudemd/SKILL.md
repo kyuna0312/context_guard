@@ -1,7 +1,6 @@
 ---
 name: Optimize Claude.md
 description: This skill should be used when the user says "optimize claude.md", "claude.md is too big", "shrink claude.md", "claude.md taking too many tokens", "trim claude.md", "rewrite claude.md", or "my claude.md is bloated". Do NOT rewrite a file already under 300 words — report it as optimal instead.
-version: 1.1.0
 ---
 
 # Optimize Claude.md

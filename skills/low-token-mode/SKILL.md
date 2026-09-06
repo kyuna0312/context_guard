@@ -1,7 +1,6 @@
 ---
 name: Low Token Mode
 description: This skill should be used when the user says "low token mode", "minimal responses", "short answers only", "save tokens", "be concise", "150 token limit", "stop explaining things", or "I'm running low on context". Do NOT activate for a one-off "keep it short" on a single answer — just answer short; the mode is for the rest of the session.
-version: 1.1.0
 ---
 
 # Low Token Mode

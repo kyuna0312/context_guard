@@ -7,12 +7,6 @@ readonly HOOKS_FILE="${1:-$HOME/.claude/settings.json}"
 error_count=0
 warning_count=0
 
-print_header() {
-  echo "=== Hook Validator ==="
-  echo "File: $HOOKS_FILE"
-  echo ""
-}
-
 fail() {
   echo "✗ $1" >&2
   error_count=$(( error_count + 1 ))
@@ -21,13 +15,6 @@ fail() {
 warn() {
   echo "⚠ $1"
   warning_count=$(( warning_count + 1 ))
-}
-
-check_file_exists() {
-  if [ ! -f "$HOOKS_FILE" ]; then
-    echo "ERROR: File not found: $HOOKS_FILE" >&2
-    exit 1
-  fi
 }
 
 validate_json_syntax() {
@@ -157,30 +144,17 @@ check_hook_scripts() {
       warn "Not executable: $expanded_path — fix: chmod +x $expanded_path"
     fi
 
-    if [[ "$expanded_path" == *.sh ]]; then
-      if bash -n "$expanded_path" 2>/dev/null; then
-        echo "  ✓ Bash syntax OK"
+    local checker=""
+    case "$expanded_path" in
+      *.sh)             checker="bash -n" ;;
+      *.mjs|*.js|*.cjs) checker="node --check" ;;
+    esac
+    if [ -n "$checker" ]; then
+      if $checker "$expanded_path" 2>/dev/null; then
+        echo "  ✓ Syntax OK ($checker)"
       else
-        fail "Bash syntax error in $expanded_path:"
-        bash -n "$expanded_path" 2>&1 | head -3
-      fi
-    fi
-
-    if [[ "$expanded_path" == *.py ]]; then
-      if python3 -m py_compile "$expanded_path" 2>/dev/null; then
-        echo "  ✓ Python syntax OK"
-      else
-        fail "Python syntax error in $expanded_path:"
-        python3 -m py_compile "$expanded_path" 2>&1 | head -3
-      fi
-    fi
-
-    if [[ "$expanded_path" == *.mjs || "$expanded_path" == *.js || "$expanded_path" == *.cjs ]]; then
-      if node --check "$expanded_path" 2>/dev/null; then
-        echo "  ✓ Node syntax OK"
-      else
-        fail "Node syntax error in $expanded_path:"
-        node --check "$expanded_path" 2>&1 | head -3
+        fail "Syntax error in $expanded_path:"
+        $checker "$expanded_path" 2>&1 | head -3
       fi
     fi
   done <<< "$(extract_hook_entries)"
@@ -203,8 +177,10 @@ print_summary() {
   fi
 }
 
-print_header
-check_file_exists
+echo "=== Hook Validator ==="
+echo "File: $HOOKS_FILE"
+echo ""
+[ -f "$HOOKS_FILE" ] || { echo "ERROR: File not found: $HOOKS_FILE" >&2; exit 1; }
 validate_json_syntax
 check_hook_events
 check_hook_scripts

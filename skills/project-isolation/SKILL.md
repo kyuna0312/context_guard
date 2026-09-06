@@ -1,7 +1,6 @@
 ---
 name: Project Isolation
 description: This skill should be used when the user says "isolate project context", "project scope only", "exclude other projects", "global context is leaking", "Claude remembers wrong project", "isolate session", or "context from wrong project". Uses only documented settings keys plus prompt-level scoping.
-version: 1.1.0
 ---
 
 # Project Isolation

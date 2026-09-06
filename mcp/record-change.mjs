@@ -3,8 +3,7 @@
 // Claude Code passes the hook a JSON payload on stdin describing the tool call.
 // We stay deliberately small and never block the tool — on any error we exit 0.
 //
-// Env: FORGE_DATABASE_URL (canonical) or DATABASE_URL (fallback) —
-// same DB the MCP server uses. pg is imported lazily so the hook stays a
+// Env: FORGE_DATABASE_URL — same DB the MCP server uses. pg is imported lazily so the hook stays a
 // no-op (exit 0) even when mcp/node_modules is missing — a static import
 // would crash every Write/Edit for users who never set up the forge half.
 
@@ -20,7 +19,7 @@ async function main() {
 
   const changeType = tool === "Write" ? "file_created" : "file_edited";
 
-  const url = process.env.FORGE_DATABASE_URL || process.env.DATABASE_URL;
+  const url = process.env.FORGE_DATABASE_URL;
   if (!url) return;
 
   let pg;

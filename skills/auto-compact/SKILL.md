@@ -1,7 +1,6 @@
 ---
 name: Auto Compact
 description: This skill should be used when the user says "auto compact", "enable auto compact", "compact on context full", "automatic context compression", "prevent context limit errors", "set up auto compaction", or "context keeps hitting limit". Note auto-compaction is on by default — check whether it was explicitly disabled before "enabling" anything.
-version: 1.1.0
 ---
 
 # Auto Compact

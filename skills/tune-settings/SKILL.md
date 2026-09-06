@@ -1,7 +1,6 @@
 ---
 name: Tune Settings
 description: This skill should be used when the user says "optimize settings.json", "tune settings for low tokens", "settings.json for performance", "disable auto memory", "configure for token savings", "minimal context window settings", or "settings taking too many tokens". Only proposes documented settings keys — never invented ones.
-version: 1.1.0
 ---
 
 # Tune Settings

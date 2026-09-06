@@ -1,7 +1,6 @@
 ---
 name: Manage Skills
 description: This skill should be used when the user says "list loaded skills", "disable skills", "skills are wasting tokens", "too many skills loaded", "which skills are active", "unload skills", "skill token cost", or "skills killing my budget". Skill bodies lazy-load — only descriptions cost tokens every session; size the fix to that reality.
-version: 1.1.0
 ---
 
 # Manage Skills

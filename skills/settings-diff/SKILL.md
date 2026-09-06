@@ -1,7 +1,6 @@
 ---
 name: Settings Diff
 description: This skill should be used when the user says "show settings diff", "what changed in settings", "compare settings before after", "settings optimization preview", "preview settings changes", or "show me what tune-settings will change". Only documented settings keys appear in diffs — never invented ones.
-version: 1.1.0
 ---
 
 # Settings Diff

@@ -151,7 +151,6 @@ test("session-start hook exits 0 and emits an LTX header", () => {
 test("record-change hook is a no-op (exit 0) without a database", () => {
   const env = { ...process.env };
   delete env.FORGE_DATABASE_URL;
-  delete env.DATABASE_URL;
   for (const input of ['{"tool_name":"Write","tool_input":{"file_path":"/tmp/x"}}', "not json at all"]) {
     const r = spawnSync(process.execPath, [path.join(root, "mcp/record-change.mjs")], {
       input,

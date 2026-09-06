@@ -1,7 +1,6 @@
 ---
 name: Check Claude.md Size
 description: This skill should be used when the user says "check claude.md size", "is my claude.md too big", "claude.md token cost", "how big is claude.md", or when triggered automatically on session start to warn about oversized claude.md files.
-version: 1.1.0
 ---
 
 # Check Claude.md Size

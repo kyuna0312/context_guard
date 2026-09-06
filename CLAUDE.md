@@ -9,7 +9,7 @@ Stack: Bash + Markdown (token half); Node ESM + Postgres `pg` (forge half), sing
 
 ## A. Architecture
 
-Entry points: `.claude-plugin/plugin.json` (manifest) · `.mcp.json` (forge-db, reads `${FORGE_DATABASE_URL}`, stdio `mcp/server.mjs`) · `hooks/hooks.json` (SessionStart → `session-start.sh`; PostToolUse `Write|Edit` → `mcp/record-change.mjs`; both with timeouts) · `commands/*.md` (frontmatter `allowed-tools` whitelist) · `skills/*/SKILL.md` · `agents/hook-error-fixer.md` · `mcp/tools.mjs` + `mcp/db.mjs` · `mcp/db/schema.sql`.
+Entry points: `.claude-plugin/plugin.json` (manifest) · `.mcp.json` (forge-db, stdio `mcp/server.mjs`; inherits `FORGE_DATABASE_URL` from the launch shell) · `hooks/hooks.json` (SessionStart → `session-start.sh`; PostToolUse `Write|Edit` → `mcp/record-change.mjs`; both with timeouts) · `commands/*.md` (frontmatter `allowed-tools` whitelist) · `skills/*/SKILL.md` · `agents/hook-error-fixer.md` · `mcp/tools.mjs` + `mcp/db.mjs` · `mcp/db/schema.sql`.
 
 - **LTX format**: `@v1:field|field` header line + pipe-delimited rows. LTX → stdout, human warnings → stderr. The three emitters (`ltx_header`, `ltx_row`, `ltx_human`) live in `hooks/scripts/session-start.sh` — copy them into any new emitting script. A skill that emits LTX documents a `## LTX Schema` section; one that doesn't must not carry a dead schema section.
 - Hook/skill scripts use `$CLAUDE_PLUGIN_ROOT` for plugin files, never hardcoded paths — but never show that variable in user-facing examples (it only resolves inside plugin hooks; use real paths like `~/.claude/hooks/`).
@@ -28,7 +28,7 @@ Entry points: `.claude-plugin/plugin.json` (manifest) · `.mcp.json` (forge-db, 
 
 ## C. Extending
 
-- **Skill**: `skills/<name>/SKILL.md`, frontmatter `name`/`description`/`version`; triggers AND anti-triggers ("Do NOT use for…") in the description; LTX emitters copied from `session-start.sh` if it emits. Auto-discovered.
+- **Skill**: `skills/<name>/SKILL.md`, frontmatter `name`/`description`; triggers AND anti-triggers ("Do NOT use for…") in the description; LTX emitters copied from `session-start.sh` if it emits. Auto-discovered.
 - **Agent**: `agents/<name>.md`, frontmatter `name`, `model: inherit`, `color`, `tools: [...]`, `description`, then `## When to use` + instructions.
 - **Hook**: block in `hooks/hooks.json`. Valid events only: `PreToolUse`, `PostToolUse`, `SessionStart`, `Stop`, `SubagentStop`, `SessionEnd`, `UserPromptSubmit`, `PreCompact`, `Notification`. Always set `timeout`; degrade to no-op, never block tools.
 - **Forge template**: rows in `templates`/`template_files`/`template_deps` (shape: `mcp/db/seed-example.sql`). Only `{{project_name}}` and `{{year}}` substituted; all else verbatim.

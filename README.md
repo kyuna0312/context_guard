@@ -7,7 +7,7 @@ A Claude Code plugin that combines two things:
 1. **Token-waste reduction** — 15 skills, a diagnostic agent, a session-start hook, and a live status line showing context usage.
 2. **DB-backed project scaffolding** — `/scaffold`, `/changelog`, `/sync-template` slash commands plus an MCP server (`forge-db`) that stores templates, file content, and pinned dependency versions in Postgres so the model never invents them.
 
-**Docs:** how to use it → [docs/USAGE.md](docs/USAGE.md) · end-to-end flows → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · backlog & deliberate ceilings → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md) · distilled reference → [wiki/](wiki/index.md)
+**Docs:** backlog & deliberate ceilings → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md) · distilled reference (flows, setup, LTX) → [wiki/](wiki/index.md)
 
 ---
 
@@ -253,8 +253,6 @@ context_forge/
 ├── agents/
 │   └── hook-error-fixer.md      # Auto-diagnoses broken hooks
 ├── docs/
-│   ├── USAGE.md                 # Daily workflow — trigger phrases, forge loop, troubleshooting
-│   ├── ARCHITECTURE.md          # End-to-end flows (both halves, data model, LTX)
 │   └── ROADMAP.md               # Backlog + deliberate ceilings with upgrade paths
 ├── commands/
 │   ├── scaffold.md              # /scaffold — create project from DB template
@@ -266,7 +264,7 @@ context_forge/
 │       └── session-start.sh     # CLAUDE.md size warning on startup
 ├── mcp/
 │   ├── server.mjs               # forge-db MCP server — McpServer wiring
-│   ├── db.mjs                   # dbUrl() + lazy pg.Pool + q() helper
+│   ├── db.mjs                   # lazy pg.Pool + q() helper
 │   ├── record-change.mjs        # PostToolUse hook: Write/Edit → changelogs
 │   ├── package.json             # @modelcontextprotocol/sdk + pg + zod
 │   ├── tools.mjs                # All 7 forge-db tools (ordered registry)

@@ -4,7 +4,7 @@
 // this file is just SDK wiring (transport, registration, dispatch).
 //
 // Requires:  npm i @modelcontextprotocol/sdk pg zod
-// Env:       FORGE_DATABASE_URL or DATABASE_URL (see db.mjs)
+// Env:       FORGE_DATABASE_URL (see db.mjs)
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

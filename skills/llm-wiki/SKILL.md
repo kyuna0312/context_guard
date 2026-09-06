@@ -1,7 +1,6 @@
 ---
 name: LLM Wiki
 description: This skill should be used when the user says "build a wiki", "maintain a wiki", "ingest docs into wiki", "query my wiki", "set up llm wiki", "wiki-based knowledge base", "stop re-reading docs every session", "persistent knowledge base", or "compress my docs into wiki pages". Do NOT use for source code (grep the code — a wiki copy of it rots) or for one-off questions about a document.
-version: 1.2.0
 ---
 
 # LLM Wiki

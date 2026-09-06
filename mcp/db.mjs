@@ -1,18 +1,13 @@
-// Shared Postgres connection-string resolution and lazy pool/query helper
-// for the forge-db MCP server. The pool below is lazy — it is only
+// Lazy pg pool + query helper for the forge-db MCP server. The pool is only
 // instantiated on the first call to q(). The record-change hook reads the
-// same env vars but stays import-free so it works without node_modules.
+// same env var but stays import-free so it works without node_modules.
 
 import pg from "pg";
-
-export function dbUrl() {
-  return process.env.FORGE_DATABASE_URL || process.env.DATABASE_URL;
-}
 
 let _pool;
 function pool() {
   if (!_pool) {
-    const url = dbUrl();
+    const url = process.env.FORGE_DATABASE_URL;
     if (!url) {
       throw new Error(
         "FORGE_DATABASE_URL is not set — export it in the shell that launches Claude Code, then restart."

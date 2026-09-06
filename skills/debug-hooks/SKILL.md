@@ -1,7 +1,6 @@
 ---
 name: Debug Hooks
 description: This skill should be used when the user says "startup hook error", "hook not working", "debug hooks", "fix hook error", "SessionStart error", "hook script failing", "node:internal/modules error", "diagnose hook", or sees hook-related errors in Claude Code. Do NOT use for MCP server connection errors — those live in .mcp.json, not hooks.
-version: 1.2.0
 ---
 
 # Debug Hooks

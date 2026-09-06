@@ -1,7 +1,6 @@
 ---
 name: Token Status Line
 description: This skill should be used when the user asks to "add token counter to status line", "show context usage in status bar", "visualize token usage", "set up token status line", "live token counter", "show context window percentage", or wants to see token burn in the terminal status bar.
-version: 1.2.0
 ---
 
 # Token Status Line

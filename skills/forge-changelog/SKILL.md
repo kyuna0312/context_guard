@@ -1,7 +1,6 @@
 ---
 name: forge-changelog
 description: This skill should be used when the user asks to "show recent changes", "show forge changelog", "show changelog for <project>", "what did I add this week", "what files did I touch today", "what packages keep recurring", "what drifts from the template", "review template suggestions", "show pending forge suggestions", "sync forge templates", "apply template suggestion", or "compute back-mapping suggestions". Provides read, drift-discovery, and template back-mapping workflows that wrap the `forge-db` MCP tools (`get_changelog`, `compute_suggestions`, `apply_suggestion`).
-version: 0.2.0
 ---
 
 # forge-changelog

@@ -1,14 +1,12 @@
 ---
 name: Task Brain Lite
 description: >-
-  Structured task decomposition with dependency tracking and cross-session
-  memory. Use when the user says "/task_brain", "task brain", "break down
+  Structured task decomposition with dependency tracking. Use when the user says "/task_brain", "task brain", "break down
   this task", "plan this", "decompose this problem", "what order should I do
   this in", or when a task has multiple moving parts, unclear dependencies,
   or high ambiguity. Do NOT use for single-step requests with an obvious
   path (just do them), conversational questions, or when the user asked for
   a plain answer — the ceremony must be smaller than the task.
-version: 1.3.0
 ---
 
 # task_brain_lite
@@ -16,7 +14,7 @@ version: 1.3.0
 You are a planner who hates planning. Every phase below exists to *shorten*
 the path to done — the moment a phase stops paying for itself, skip it.
 
-Decompose → Prioritize → Execute → Remember → Reuse.
+Decompose → Prioritize → Execute.
 
 ## Phase 1: ANALYZE
 
@@ -27,14 +25,8 @@ Before anything else, assess the task:
   - Medium: 2–4 steps, some unknowns, no hard interdependencies
   - High: 5+ steps, or significant dep chain, or high ambiguity
 - **deps**: list what blocks what (skip if Low)
-- **memory_check**: run a 3-signal match against `.remember/logs/task_brain.jsonl`
-  (file missing or empty → `[memory: miss]`, no error, don't create it yet)
-  - Signal 1 (structural): same complexity class AND stored `n` within ±2 of current subtask count — subtasks don't exist yet, so use the step estimate you just made for the complexity call
-  - Signal 2 (domain): ≥1 overlapping tag between current task keywords and stored `t`
-  - Signal 3 (solution verb): a verb from stored `sol` appears in the current task description
-  - Show `[memory: HIT — N/3 signals]` if N ≥ 2, else `[memory: miss]`
 
-Show user: `[complexity: H] [deps: A→B, C→B] [memory: hit/miss]`
+Show user: `[complexity: H] [deps: A→B, C→B]`
 
 If complexity is Medium or High, initialize the task state table after the next phase.
 
@@ -94,12 +86,6 @@ Show: `Next: [task_name] (unblocks: N)`
 
 ## Phase 4: EXECUTE
 
-**Before executing**, check for memory hit:
-- If memory hit (from Phase 1): load the matching entry now
-- Show: `[memory] Adapting: {s} ({e}) → {sol}`
-- Apply the prior approach to current context; skip steps already covered
-- If context has shifted significantly, note the delta and proceed fresh
-
 Execute **one task only**. Output only what's needed.
 
 **Done criteria** — before moving on, state the verifiable artifact:
@@ -109,52 +95,25 @@ Execute **one task only**. Output only what's needed.
 
 After execution, confirm with user before next task — unless they said "auto" or "run all".
 
-## Phase 5: LOG
-
-**One entry per completed *task*** — when the table is fully `done` (or the
-Low task finishes), not after every subtask: the fields are task-level, and
-N near-identical rows would poison the memory match. Append to
-`.remember/logs/task_brain.jsonl` (create the directory on first write:
-`mkdir -p .remember/logs`):
-
-```json
-{"s": "task_slug", "e": "YYYY-MM-DD", "sol": "one-line summary of approach", "t": ["tag1", "tag2"], "cx": "M", "n": 3}
-```
-
-Fields:
-- `s`: task slug/name
-- `e`: date completed (today)
-- `sol`: solution summary (what worked, key insight)
-- `t`: tags for future retrieval (language, domain, pattern type)
-- `cx`: task complexity class (L/M/H) — Signal 1 of memory match
-- `n`: total subtask count — Signal 1 of memory match
-
-Skip the log when there's nothing reusable — a trivial rename teaches
-future sessions nothing; YAGNI applies to memory too. If the file exceeds
-~200 lines, drop the oldest entries while appending.
-
-Show: `[LOG] ✓ saved` (or nothing, when skipped)
-
 ## Output Format
 
 Print phase headers only when the phase runs:
 
 | Complexity | Phases shown |
 |------------|-------------|
-| Low        | `[ANALYZE]`, `[EXECUTE]` (+ `[LOG]` only if reusable) |
-| Medium     | `[ANALYZE]`, `[SEQUENCE]`, `[EXECUTE]`…, `[LOG]` once at the end |
-| High       | `[ANALYZE]`, `[SPLIT]`, `[PRIORITY]`, `[EXECUTE]`…, `[LOG]` once at the end |
+| Low        | `[ANALYZE]`, `[EXECUTE]` |
+| Medium     | `[ANALYZE]`, `[SEQUENCE]`, `[EXECUTE]`… |
+| High       | `[ANALYZE]`, `[SPLIT]`, `[PRIORITY]`, `[EXECUTE]`… |
 
-- Never print `[REUSE]` as a header — reuse output appears inline within `[EXECUTE]`
 - Always reprint the task state table after SPLIT or SEQUENCE, and after each EXECUTE cycle
 - Keep it tight. No phase explanation unless user asks "why".
 
 Example — "rename this function everywhere":
-`[complexity: L] [memory: miss]` → rename, `Done: 6 call sites updated, tests pass`. No tree, no table, no log (nothing reusable) — two lines total.
+`[complexity: L]` → rename, `Done: 6 call sites updated, tests pass`. No tree, no table — two lines total.
 
 ## When NOT to use
 
-- Single obvious step → no phases, no headers, just do it and log.
+- Single obvious step → no phases, no headers, just do it.
 - The user asked a question, not for work → answer it; planning a reply is ceremony.
 - Never manufacture subtasks to make a task look High — the overhead of the
   table must stay smaller than the work it tracks.
