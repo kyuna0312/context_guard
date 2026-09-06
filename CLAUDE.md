@@ -2,14 +2,14 @@
 
 Claude Code plugin for token-waste reduction: 11 skills, the `hook-error-fixer` agent, a session-start hook, a status line. Skills also run on Codex / Gemini CLI (skills.sh); hook, status line, agent are Claude Code only.
 
-Stack: Bash + Markdown, zero runtime deps. Tests: `node --test` (node ≥18, tests only); `python3` for hook + statusline. Install: `bash scripts/install.sh` — marketplace registration; a symlink under `~/.claude/plugins` is NOT discovered. Dev: `claude --plugin-dir <repo>`. README is the single source for install, flows, thresholds; vocabulary `CONTEXT.md`; decisions `.agents/adr/`.
+Stack: Bash + Markdown, zero runtime deps. Tests: `node --test` (node ≥18, tests only); `python3` for hook + statusline. Install: `bash scripts/install.sh` — marketplace registration; a symlink under `~/.claude/plugins` is NOT discovered. Dev: `claude --plugin-dir <repo>`. README is the single source (site + GitHub wiki derive from it); vocabulary `CONTEXT.md`; decisions `.agents/adr/`; workflow `CONTRIBUTING.md`, `main` is PR-only.
 
 ## A. Architecture
 
 Entry points: `.claude-plugin/plugin.json` (`skills` array = shipped set) · `hooks/hooks.json` (SessionStart → `session-start.sh`) · `skills/<bucket>/<name>/SKILL.md` (buckets `context`, `config`, `productivity`) · `agents/hook-error-fixer.md` · `scripts/statusline-command.sh`.
 
 - **LTX**: `@v1:field|field` header + pipe rows → stdout; human text → stderr. Emitters `ltx_header`/`ltx_row`/`ltx_human` live in `session-start.sh` — copy, don't abstract. Only skills that emit LTX carry a `## LTX Schema` section.
-- Scripts use `$CLAUDE_PLUGIN_ROOT` for plugin files, never hardcoded paths — never in user-facing examples (it only resolves inside plugin hooks; show `~/.claude/hooks/`).
+- Scripts use `$CLAUDE_PLUGIN_ROOT` for plugin files, never hardcoded paths; never in user-facing examples (it only resolves inside plugin hooks; show `~/.claude/hooks/`).
 - **session-start.sh**: hook stdout is injected into context, so it stays EMPTY unless a CLAUDE.md is over `WARN_WORDS=600` / `CRIT_WORDS=1000`; then `@v1:file|words|tokens|level` rows. `-ef` guard against CLAUDE.md/claude.md double-count. settings.json check: stderr only, skipped without python3.
 - **statusline-command.sh**: stdin JSON → powerline segments in the tmux "Night City" palette; fields `\x1f`-separated (names contain spaces). Colour thresholds in README. Needs Claude Code ≥ 2.1.97 and a Nerd Font.
 
@@ -28,14 +28,14 @@ Entry points: `.claude-plugin/plugin.json` (`skills` array = shipped set) · `ho
 
 ## D. Operating Mode
 
-Ponytail is injected by its own plugin and applies in full. Additions:
+Ponytail is injected by its own plugin; applies in full. Additions:
 
 - Bug fix = root cause: grep every caller; one guard in the shared function beats a patch per caller.
 - Platform-native first: bash builtins over subprocesses, Node built-ins over packages. Corner-cuts get a `ponytail:` comment naming ceiling + upgrade path.
 - Never lazy about: understanding the problem, trust-boundary validation, security, anything explicitly requested.
-- Non-trivial logic leaves ONE runnable check in `tests/repo.test.mjs`.
+- Non-trivial logic leaves ONE check in `tests/repo.test.mjs`.
 - Strict for `hooks/` and `scripts/`; no new languages without explicit ask.
 
 **Verify**: `node --test` · `claude plugin validate . --strict` · `python3 -m json.tool <f>` · `bash -n`. Smoke one-liners: README → Tests.
 
-**Forced**: `node --test` green before EVERY commit — it covers JSON, hook config, frontmatter, syntax, hook runtime, skill registration and SKILL.md refs; don't redo that audit by hand. A file write ≠ correct code: verify before saying "done". This file stays under 600 words (`wc -w CLAUDE.md`) — the hook's own warning threshold; move detail to README or skill `references/`.
+**Forced**: `node --test` green before EVERY commit — it covers JSON, hooks, frontmatter, syntax, hook runtime, skill registration, SKILL.md refs; don't redo that audit by hand. A file write ≠ correct code: verify before saying "done". This file stays under 600 words (`wc -w CLAUDE.md`) — the hook's own warning threshold; move detail to README or skill `references/`.
