@@ -1,6 +1,10 @@
 # context_forge
 
 [![test](https://github.com/kyuna0312/context_forge/actions/workflows/test.yml/badge.svg)](https://github.com/kyuna0312/context_forge/actions/workflows/test.yml)
+[![site](https://img.shields.io/badge/site-kyuna0312.github.io%2Fcontext__forge-2bbcd5?style=flat)](https://kyuna0312.github.io/context_forge/)
+[![version](https://img.shields.io/github/v/tag/kyuna0312/context_forge?label=version&color=49d575&style=flat)](https://github.com/kyuna0312/context_forge/blob/main/CHANGELOG.md)
+
+**→ [kyuna0312.github.io/context_forge](https://kyuna0312.github.io/context_forge/)** — the one-page version of this README: what the status line shows, the hook flow, thresholds, install in two lines.
 
 Two shell scripts that keep Claude Code's context small, plus 11 skills (prompt files) for trimming it further.
 
@@ -8,7 +12,7 @@ Two shell scripts that keep Claude Code's context small, plus 11 skills (prompt 
 2. **Session-start hook** — warns when a CLAUDE.md is over 600 words; prints nothing otherwise, so it costs no context itself.
 3. **Skills** — `optimize-claudemd`, `estimate-tokens`, `low-token-mode`, `reset-context`, `tune-settings` and six more. The portable ones also run on **Codex** and **Gemini CLI**.
 
-**Site:** [kyuna0312.github.io/context_forge](https://kyuna0312.github.io/context_forge) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) (PR-only `main`, CI on Ubuntu + macOS) · **Wiki:** generated from this README by `scripts/sync-wiki.sh`
+**Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) (PR-only `main`, CI on Ubuntu + macOS) · **Wiki:** generated from this README by `scripts/sync-wiki.sh`
 
 **Docs:** domain glossary → [CONTEXT.md](CONTEXT.md) · decisions → [.agents/adr/](.agents/adr/) · changes → [CHANGELOG.md](CHANGELOG.md) · backlog → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md)
 
