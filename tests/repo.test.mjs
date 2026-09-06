@@ -147,7 +147,8 @@ test("statusline renders sample input (multi-word model name)", () => {
   assert.match(r.stdout, /72%/, `expected context percentage in: ${r.stdout}`);
 });
 
-test("CLAUDE.md stays under its 12,000-character budget", () => {
-  const size = fs.statSync(path.join(root, "CLAUDE.md")).size;
-  assert.ok(size <= 12000, `CLAUDE.md is ${size} chars (budget 12000)`);
+// The plugin's own hook warns at 600 words; the repo must not trip its own alarm.
+test("CLAUDE.md stays under the hook's 600-word warning threshold", () => {
+  const words = fs.readFileSync(path.join(root, "CLAUDE.md"), "utf8").split(/\s+/).filter(Boolean).length;
+  assert.ok(words < 600, `CLAUDE.md is ${words} words (hook warns at 600)`);
 });
