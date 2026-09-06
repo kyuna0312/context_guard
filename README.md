@@ -8,6 +8,8 @@ Two shell scripts that keep Claude Code's context small, plus 11 skills (prompt 
 2. **Session-start hook** — warns when a CLAUDE.md is over 600 words; prints nothing otherwise, so it costs no context itself.
 3. **Skills** — `optimize-claudemd`, `estimate-tokens`, `low-token-mode`, `reset-context`, `tune-settings` and six more. The portable ones also run on **Codex** and **Gemini CLI**.
 
+**Site:** [kyuna0312.github.io/context_forge](https://kyuna0312.github.io/context_forge) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) (PR-only `main`, CI on Ubuntu + macOS) · **Wiki:** generated from this README by `scripts/sync-wiki.sh`
+
 **Docs:** domain glossary → [CONTEXT.md](CONTEXT.md) · decisions → [.agents/adr/](.agents/adr/) · changes → [CHANGELOG.md](CHANGELOG.md) · backlog → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md)
 
 ---
@@ -252,7 +254,9 @@ context_forge/
 ├── CHANGELOG.md
 ├── agents/
 │   └── hook-error-fixer.md      # Auto-diagnoses broken hooks
+├── CONTRIBUTING.md              # Branch → PR → main; how to add a skill
 ├── docs/
+│   ├── index.html               # The site (GitHub Pages, served from /docs)
 │   └── ROADMAP.md               # Backlog + deliberate ceilings with upgrade paths
 ├── hooks/
 │   ├── hooks.json               # SessionStart hook config
@@ -261,6 +265,7 @@ context_forge/
 │   ├── install.sh               # Registers local marketplace + installs plugin
 │   ├── uninstall.sh             # Uninstalls plugin, marketplace + statusline copy
 │   ├── list-skills.sh           # Prints <bucket>/<skill> for every SKILL.md
+│   ├── sync-wiki.sh             # Regenerates the GitHub wiki from README + CONTRIBUTING
 │   └── statusline-command.sh    # Status line renderer (copy to ~/.claude/)
 ├── skills/                      # One bucket per folder, README.md in each
 │   ├── context/                 # 6 skills — instruction-file size, token estimates, reset, status line
