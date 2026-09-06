@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -51,65 +52,44 @@ test("hooks.json: valid events, existing scripts, $CLAUDE_PLUGIN_ROOT paths", ()
   }
 });
 
-test("every skill has SKILL.md with name and description", () => {
-  const skillsDir = path.join(root, "skills");
-  for (const e of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-    if (!e.isDirectory()) continue;
-    const fm = frontmatter(path.join(skillsDir, e.name, "SKILL.md"));
-    assert.match(fm, /^name:\s*\S/m, `skills/${e.name}: frontmatter missing name`);
-    assert.match(fm, /^description:\s*\S/m, `skills/${e.name}: frontmatter missing description`);
-  }
-});
-
-test("every command declares description and allowed-tools", () => {
-  for (const f of walk(path.join(root, "commands"), ".md")) {
-    const fm = frontmatter(f);
-    assert.match(fm, /^description:\s*\S/m, `${path.relative(root, f)}: missing description`);
-    assert.match(fm, /^allowed-tools:/m, `${path.relative(root, f)}: missing allowed-tools`);
-  }
-});
-
-// Parsed from source, not imported — CI has no mcp/node_modules.
-function forgeToolNames() {
-  const src = fs.readFileSync(path.join(root, "mcp/tools.mjs"), "utf8");
-  return [...src.matchAll(/^\s*name: "(\w+)"/gm)].map((m) => m[1]);
+// skills/<bucket>/<name>/SKILL.md — returns [{bucket, name, dir}]
+function skills() {
+  return walk(path.join(root, "skills"), "SKILL.md").map((f) => {
+    const dir = path.dirname(f);
+    return { dir, name: path.basename(dir), bucket: path.basename(path.dirname(dir)) };
+  });
 }
 
-test("forge-db tool names are unique; commands/skills only reference real ones", () => {
-  const names = forgeToolNames();
-  assert.ok(names.length >= 7, `expected the forge-db tools, found ${names.length}`);
-  assert.equal(new Set(names).size, names.length, "duplicate tool name in mcp/tools.mjs");
-  for (const f of [...walk(path.join(root, "commands"), ".md"), ...walk(path.join(root, "skills"), ".md")]) {
-    const src = fs.readFileSync(f, "utf8");
-    for (const [, tool] of src.matchAll(/mcp__forge-db__(\w+)/g)) {
-      assert.ok(names.includes(tool),
-        `${path.relative(root, f)}: references unknown forge-db tool "${tool}"`);
-    }
+test("every skill has SKILL.md with name and description", () => {
+  for (const { dir, bucket, name } of skills()) {
+    const fm = frontmatter(path.join(dir, "SKILL.md"));
+    assert.match(fm, /^name:\s*\S/m, `skills/${bucket}/${name}: frontmatter missing name`);
+    assert.match(fm, /^description:\s*\S/m, `skills/${bucket}/${name}: frontmatter missing description`);
+  }
+});
+
+test("every skill is registered: plugin.json skills, bucket README, top-level README", () => {
+  const plugin = JSON.parse(fs.readFileSync(path.join(root, ".claude-plugin/plugin.json"), "utf8"));
+  const readme = fs.readFileSync(path.join(root, "README.md"), "utf8");
+  const all = skills();
+  assert.equal(plugin.skills.length, all.length, "plugin.json skills count ≠ SKILL.md count");
+  for (const { dir, bucket, name } of all) {
+    const rel = `skills/${bucket}/${name}`;
+    assert.ok(plugin.skills.includes(`./${rel}`), `plugin.json skills missing ./${rel}`);
+    const bucketReadme = fs.readFileSync(path.join(root, "skills", bucket, "README.md"), "utf8");
+    assert.ok(bucketReadme.includes(`./${name}/SKILL.md`), `skills/${bucket}/README.md does not link ${name}`);
+    assert.ok(readme.includes(`${rel}/SKILL.md`), `README.md does not link ${rel}/SKILL.md`);
   }
 });
 
 test("SKILL.md repo-path references resolve to real files", () => {
-  const skillsDir = path.join(root, "skills");
-  for (const e of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-    if (!e.isDirectory()) continue;
-    const skillDir = path.join(skillsDir, e.name);
-    const src = fs.readFileSync(path.join(skillDir, "SKILL.md"), "utf8");
-    for (const [, ref] of src.matchAll(/`((?:references|scripts|commands|hooks|mcp|agents|tests)\/[\w./-]+\.\w+)`/g)) {
+  for (const { dir, bucket, name } of skills()) {
+    const src = fs.readFileSync(path.join(dir, "SKILL.md"), "utf8");
+    for (const [, ref] of src.matchAll(/`((?:references|scripts|hooks|agents|tests|skills)\/[\w./-]+\.\w+)`/g)) {
       assert.ok(
-        fs.existsSync(path.join(skillDir, ref)) || fs.existsSync(path.join(root, ref)),
-        `skills/${e.name}/SKILL.md: broken reference ${ref}`
+        fs.existsSync(path.join(dir, ref)) || fs.existsSync(path.join(root, ref)),
+        `skills/${bucket}/${name}/SKILL.md: broken reference ${ref}`
       );
-    }
-  }
-});
-
-test(".mcp.json server entry points at an existing script", () => {
-  const cfg = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8"));
-  for (const [name, srv] of Object.entries(cfg.mcpServers)) {
-    for (const arg of srv.args ?? []) {
-      if (!arg.includes("${CLAUDE_PLUGIN_ROOT}")) continue;
-      const rel = arg.replace("${CLAUDE_PLUGIN_ROOT}/", "");
-      assert.ok(fs.existsSync(path.join(root, rel)), `${name}: missing server script ${rel}`);
     }
   }
 });
@@ -123,42 +103,33 @@ test("every agent declares name, description, tools", () => {
   }
 });
 
-test("shell scripts pass bash -n, .mjs files pass node --check", () => {
+test("shell scripts pass bash -n", () => {
   for (const f of walk(root, ".sh")) {
     const r = spawnSync("bash", ["-n", f], { encoding: "utf8" });
     assert.equal(r.status, 0, `bash -n ${path.relative(root, f)}: ${r.stderr}`);
   }
-  for (const f of walk(root, ".mjs")) {
-    if (f.includes(`${path.sep}tests${path.sep}`)) continue;
-    const r = spawnSync(process.execPath, ["--check", f], { encoding: "utf8" });
-    assert.equal(r.status, 0, `node --check ${path.relative(root, f)}: ${r.stderr}`);
-  }
 });
 
-test("session-start hook exits 0 and emits an LTX header", () => {
-  const r = spawnSync("bash", [path.join(root, "hooks/scripts/session-start.sh")], {
-    cwd: root,
-    env: { ...process.env, CLAUDE_PLUGIN_ROOT: root },
+// stdout is injected into Claude's context: it must be empty when every file
+// is under threshold, and a well-formed LTX document when one is over.
+test("session-start hook: silent under threshold, LTX rows over it", () => {
+  const run = (projectDir) => spawnSync("bash", [path.join(root, "hooks/scripts/session-start.sh")], {
+    env: { ...process.env, CLAUDE_PLUGIN_ROOT: root, HOME: projectDir, CLAUDE_PROJECT_DIR: projectDir },
     encoding: "utf8",
   });
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cf-"));
+  fs.writeFileSync(path.join(tmp, "CLAUDE.md"), "small file\n");
+  let r = run(tmp);
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /^@v1:/, `expected LTX header, got: ${r.stdout}`);
-  for (const line of r.stdout.trim().split("\n").slice(1)) {
-    assert.equal(line.split("|").length, 4, `malformed LTX row (want 4 fields): "${line}"`);
-  }
-});
+  assert.equal(r.stdout, "", `under threshold must print nothing, got: ${r.stdout}`);
 
-test("record-change hook is a no-op (exit 0) without a database", () => {
-  const env = { ...process.env };
-  delete env.FORGE_DATABASE_URL;
-  for (const input of ['{"tool_name":"Write","tool_input":{"file_path":"/tmp/x"}}', "not json at all"]) {
-    const r = spawnSync(process.execPath, [path.join(root, "mcp/record-change.mjs")], {
-      input,
-      env,
-      encoding: "utf8",
-    });
-    assert.equal(r.status, 0, `hook must never block the tool (input: ${input}): ${r.stderr}`);
-  }
+  fs.writeFileSync(path.join(tmp, "CLAUDE.md"), "word ".repeat(1200));
+  r = run(tmp);
+  assert.equal(r.status, 0, r.stderr);
+  const lines = r.stdout.trim().split("\n");
+  assert.equal(lines[0], "@v1:file|words|tokens|level");
+  assert.match(lines[1], /\|1200\|1560\|critical$/, lines[1]);
+  assert.match(r.stderr, /CRITICAL/);
 });
 
 test("statusline renders sample input (multi-word model name)", () => {

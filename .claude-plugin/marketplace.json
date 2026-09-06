@@ -1,16 +1,16 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "context_forge",
-  "version": "0.2.1",
-  "description": "Token-waste reduction (skills, hooks, status line) combined with DB-backed project scaffolding, changelog tracking, and template back-mapping via MCP.",
+  "name": "context-forge",
+  "version": "0.3.0",
+  "description": "Claude Code plugin for token-waste reduction: 14 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
   "owner": {
     "name": "kyuna0312"
   },
   "plugins": [
     {
-      "name": "context_forge",
-      "version": "0.2.1",
-      "description": "Two-half plugin: 15 skills + 1 agent + session-start hook for token-waste reduction, plus a forge-db MCP server, 3 slash commands, and a PostToolUse hook for DB-backed scaffolding.",
+      "name": "context-forge",
+      "version": "0.3.0",
+      "description": "14 skills + 1 agent + session-start hook + status line for token-waste reduction in Claude Code; skills also run on Codex and Gemini CLI.",
       "author": {
         "name": "kyuna0312",
         "email": "khatanzorigb@gmail.com"
@@ -24,11 +24,7 @@
         "hooks",
         "optimization",
         "claude-md",
-        "settings",
-        "scaffold",
-        "template",
-        "mcp",
-        "postgres"
+        "settings"
       ]
     }
   ]

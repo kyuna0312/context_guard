@@ -1,11 +1,13 @@
 {
-  "name": "context_forge",
-  "version": "0.2.1",
-  "description": "Claude Code plugin combining token-waste reduction (skills, hooks, status line) with DB-backed project scaffolding, changelog tracking, and template back-mapping via MCP.",
+  "name": "context-forge",
+  "version": "0.3.0",
+  "description": "Claude Code plugin for token-waste reduction: 14 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
   "author": {
     "name": "kyuna0312",
     "email": "khatanzorigb@gmail.com"
   },
+  "repository": "https://github.com/kyuna0312/context_forge",
+  "license": "MIT",
   "keywords": [
     "token",
     "optimization",
@@ -13,11 +15,22 @@
     "performance",
     "claude-md",
     "settings",
-    "hooks",
-    "scaffold",
-    "template",
-    "mcp",
-    "postgres",
-    "changelog"
+    "hooks"
+  ],
+  "skills": [
+    "./skills/config/debug-hooks",
+    "./skills/config/project-isolation",
+    "./skills/config/settings-diff",
+    "./skills/config/tune-settings",
+    "./skills/context/auto-compact",
+    "./skills/context/check-claudemd-size",
+    "./skills/context/estimate-tokens",
+    "./skills/context/low-token-mode",
+    "./skills/context/manage-skills",
+    "./skills/context/optimize-claudemd",
+    "./skills/context/reset-context",
+    "./skills/context/token-statusline",
+    "./skills/productivity/llm-wiki",
+    "./skills/productivity/task-brain-lite"
   ]
 }

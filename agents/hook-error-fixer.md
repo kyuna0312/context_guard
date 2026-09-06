@@ -66,10 +66,6 @@ Match error to known patterns:
 - `Permission denied` → Script not executable
 - `command not found` → Required tool not installed
 - Hook silently fails → Wrong event name or bad JSON schema
-- Hook "does nothing" but is this plugin's `record-change.mjs` → likely
-  **by design**: it swallows all errors and exits 0 so it never blocks
-  Write/Edit. Check `FORGE_DATABASE_URL` and `mcp/node_modules` before
-  declaring it broken
 
 Step 5 — Fix the issue:
 Choose the appropriate fix:

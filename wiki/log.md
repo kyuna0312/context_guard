@@ -2,3 +2,5 @@
 [2026-08-07] INGEST: README.md → installation, forge-setup, ltx-format (skipped skills table — skill descriptions auto-load every session)
 [2026-08-07] INGEST: CLAUDE.md verify table → dev-reference (CLAUDE.md optimization: 1,625 → 923 words)
 [2026-09-06] INGEST: docs/ARCHITECTURE.md → architecture (docs/USAGE.md + ARCHITECTURE.md deleted — README + wiki already covered them)
+[2026-09-06] UPDATE: forge-setup, installation, architecture → Codex/Gemini CLI install + MCP registration; commands became skills
+[2026-09-06] REMOVE: forge half deleted (mcp/, forge skills, record-change hook) — forge-setup page dropped, architecture trimmed

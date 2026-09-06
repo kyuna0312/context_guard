@@ -8,20 +8,10 @@ path is. Nothing here is a bug — bugs get fixed, not listed.
 
 | Ceiling | Where | Upgrade path |
 |---------|-------|--------------|
-| `version: "latest"` stored literally when applying a suggestion without an explicit version | `apply_suggestion` | User re-applies with a pinned version; could auto-resolve from the npm registry if that becomes routine |
-| `compute_suggestions` upserts in an N+1 loop | `mcp/tools.mjs` | Single `INSERT ... SELECT` when suggestion volume is more than a handful |
-| record-change matcher covers `Write\|Edit` only — `MultiEdit` / `NotebookEdit` changes are not recorded | `hooks/hooks.json` | Extend the matcher when those tools matter for tracked projects |
-| Project attachment is "latest project whose root_path is a prefix" — nested projects pick the newest registration | `record-change.mjs` | Longest-prefix match if nested projects become real |
-| No DB-backed integration tests — CI has no Postgres; MCP tool handlers are covered by contract/source tests only | `tests/`, CI | Add a Postgres service container to `test.yml` + a small tool-handler suite |
 | Statusline reads only the `5h` rate-limit window | `statusline-command.sh` | Surface other windows when Claude Code exposes ones users watch |
-| One seed template (`node-ts-basic`) | `mcp/db/seed-example.sql` | Add templates as real stacks get scaffolded; follow the dollar-quoting warning in the seed header |
+| Hooks and status line are Claude Code only; Codex and Gemini CLI get skills via skills.sh but no session-start check | `hooks/`, `scripts/` | Port `session-start.sh` to Codex `hooks.json` / Gemini `settings.json` hooks once their stdin contracts are verified |
 
 ## Backlog
 
 - **Marketplace publishing** — `.claude-plugin/marketplace.json` exists but
   the publish flow is undocumented; write it down when first publishing.
-- **`add_file` back-mapping** — a second suggestion `kind`; needs a
-  changelog signal (recurring `file_created` outside the template file set)
-  and an `apply_suggestion` branch.
-- **Forge dashboards** — `get_changelog` output is markdown-only today; an
-  LTX schema for changelog rows would let the token-saver half render it.

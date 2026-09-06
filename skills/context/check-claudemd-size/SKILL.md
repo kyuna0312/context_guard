@@ -1,0 +1,93 @@
+---
+name: check-claudemd-size
+description: Report word/token size of CLAUDE.md, AGENTS.md or GEMINI.md with thresholds. Use for "how big is my claude.md", "claude.md token cost".
+---
+
+# Check Claude.md Size
+
+Measure and report agent instruction file sizes (`CLAUDE.md`; `AGENTS.md` on Codex; `GEMINI.md` on Gemini CLI). Warn when files exceed optimal token budget. Suggest optimization when needed.
+
+## Size Thresholds
+
+| Size | Status | Action |
+|------|--------|--------|
+| < 300 words | Optimal | No action needed |
+| 300-600 words | Acceptable | Monitor growth |
+| 600-1,000 words | Bloated | Run optimize-claudemd |
+| > 1,000 words | Critical | Immediate optimization needed |
+
+## Check Procedure
+
+### Scan All claude.md Files
+
+```bash
+# Global
+wc -w ~/.claude/CLAUDE.md 2>/dev/null
+wc -w ~/.claude/claude.md 2>/dev/null
+
+# Project (whichever the harness reads)
+wc -w ./CLAUDE.md ./claude.md ./AGENTS.md ./GEMINI.md 2>/dev/null
+```
+
+### Report Format
+
+```
+CLAUDE.MD SIZE CHECK
+====================
+Global (~/.claude/CLAUDE.md):   [N] words ≈ [N*1.3] tokens  [STATUS]
+Project (./CLAUDE.md):          [N] words ≈ [N*1.3] tokens  [STATUS]
+
+Combined constant cost: ~[N] tokens per response
+
+[WARNING if any file is Bloated/Critical]
+Run: /context-forge:optimize-claudemd to reduce size
+```
+
+## Automatic Session-Start Check
+
+The SessionStart hook (`hooks/scripts/session-start.sh`) performs this same
+check automatically — it does not invoke this skill. Use the skill for
+on-demand checks mid-session; don't re-run it right after session start,
+the hook already reported. On session start the hook:
+
+1. Check all claude.md file sizes
+2. If any file > 600 words: print warning
+3. If any file > 1,000 words: print critical warning with optimization command
+
+Warning format:
+```
+⚠ TOKEN SAVER: claude.md is [N] words ([STATUS])
+  Run /context-forge:optimize-claudemd to reduce by ~[%]%
+```
+
+## What Makes claude.md Grow
+
+Common causes of bloat:
+- Accumulated instructions over time without pruning
+- Paste of full API docs or schemas
+- Duplicate rules from different sessions
+- Long prose explanations instead of bullet rules
+- Examples that should be in `references/` files
+
+## LTX Schema
+
+Emit structured output as LTX rows when reporting file sizes.
+
+```
+@v1:file|words|tokens|level
+```
+
+| Field | Description |
+|-------|-------------|
+| `file` | Path to the claude.md file checked |
+| `words` | Raw word count |
+| `tokens` | Estimated tokens (`words * 1.3`, rounded) |
+| `level` | `ok`, `warn` (600–999 words), `critical` (≥1000 words) |
+
+Example:
+```
+@v1:file|words|tokens|level
+~/.claude/CLAUDE.md|850|1105|critical
+./CLAUDE.md|320|416|ok
+```
+

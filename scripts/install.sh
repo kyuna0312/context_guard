@@ -2,16 +2,11 @@
 set -euo pipefail
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PLUGIN_NAME="context_forge"
+PLUGIN_NAME="context-forge"
 
 echo "Installing $PLUGIN_NAME..."
 
 # Warn (don't fail) about missing runtime deps — hooks need these at session start.
-if ! command -v node >/dev/null 2>&1; then
-  echo "Warning: node not found — the record-change hook and forge MCP server won't run."
-elif [ "$(node -p 'parseInt(process.versions.node)')" -lt 18 ]; then
-  echo "Warning: node $(node -v) found, but >=18 is required for the MCP server."
-fi
 if ! command -v python3 >/dev/null 2>&1; then
   echo "Warning: python3 not found — settings.json validation in the session-start hook will be skipped."
 fi
@@ -32,6 +27,11 @@ claude plugin marketplace add "$PLUGIN_DIR" 2>/dev/null || true
 claude plugin marketplace update "$PLUGIN_NAME"
 claude plugin install "$PLUGIN_NAME@$PLUGIN_NAME" 2>/dev/null || true
 claude plugin update "$PLUGIN_NAME@$PLUGIN_NAME"
+
+# Pre-0.3.0 registered the plugin as context_forge (underscore) — remove it so
+# the two don't both load.
+claude plugin uninstall context_forge@context_forge 2>/dev/null || true
+claude plugin marketplace remove context_forge 2>/dev/null || true
 
 # Clean up the legacy symlink older versions of this script created — it was
 # never discovered as a plugin.
@@ -61,8 +61,3 @@ fi
 echo ""
 echo "Done! Plugin '$PLUGIN_NAME' installed (restart Claude Code to load it)."
 echo "The install is a snapshot — after pulling repo updates, re-run this script."
-echo ""
-echo "Optional — forge half (DB-backed scaffolding):"
-echo "  cd $PLUGIN_DIR/mcp && npm install"
-echo "  export FORGE_DATABASE_URL=postgres://..."
-echo "  psql \"\$FORGE_DATABASE_URL\" -f $PLUGIN_DIR/mcp/db/schema.sql"

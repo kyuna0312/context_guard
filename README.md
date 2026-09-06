@@ -2,79 +2,74 @@
 
 [![test](https://github.com/kyuna0312/context_forge/actions/workflows/test.yml/badge.svg)](https://github.com/kyuna0312/context_forge/actions/workflows/test.yml)
 
-A Claude Code plugin that combines two things:
+A Claude Code plugin for token-waste reduction: 14 skills, a diagnostic agent, a session-start hook, and a live status line showing context usage.
 
-1. **Token-waste reduction** — 15 skills, a diagnostic agent, a session-start hook, and a live status line showing context usage.
-2. **DB-backed project scaffolding** — `/scaffold`, `/changelog`, `/sync-template` slash commands plus an MCP server (`forge-db`) that stores templates, file content, and pinned dependency versions in Postgres so the model never invents them.
+Built as a Claude Code plugin; the portable skills also run on **Codex** and **Gemini CLI** (see [Other agents](#other-agents-codex-gemini-cli)).
 
-**Docs:** backlog & deliberate ceilings → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md) · distilled reference (flows, setup, LTX) → [wiki/](wiki/index.md)
+**Docs:** domain glossary → [CONTEXT.md](CONTEXT.md) · decisions → [.agents/adr/](.agents/adr/) · changes → [CHANGELOG.md](CHANGELOG.md) · backlog & deliberate ceilings → [docs/ROADMAP.md](docs/ROADMAP.md) · agent rules → [CLAUDE.md](CLAUDE.md) · distilled reference (flows, install, LTX) → [wiki/](wiki/index.md)
 
 ---
 
 ## Skills
 
+Grouped into buckets under `skills/`; each bucket has a `README.md` listing its skills. Invoke as `/context-forge:<skill>` (Claude Code), `$<skill>` (Codex), or just describe what you want. Skills marked **CC** act on Claude Code's `settings.json`, hooks or status line and are Claude Code only; everything else is portable.
+
+**[context](skills/context/README.md)** — shrink what the agent loads or emits
+
 | Skill | What it does |
 |-------|-------------|
-| `optimize-claudemd` | Compresses bloated CLAUDE.md — cuts 40–80% of tokens loaded every session |
-| `low-token-mode` | Switches Claude to terse response style — cuts reply tokens by 30–50% |
-| `reset-context` | Safely resets context window when near full — prevents hard stops |
-| `tune-settings` | Diffs and applies token-saving settings (`autoMemoryEnabled`, `disableBundledSkills`, `disabledMcpjsonServers`) |
-| `manage-skills` | Audits loaded skills, disables unused ones — reduces session overhead |
-| `project-isolation` | Scopes skills and hooks to current project only |
-| `estimate-tokens` | Estimates tokens in any file before loading it |
-| `auto-compact` | Tunes `autoCompactEnabled` / `autoCompactWindow` — auto-compacts instead of stopping |
-| `settings-diff` | Shows before/after diff before writing any settings change |
-| `check-claudemd-size` | Reports CLAUDE.md word/token count with color-coded warnings |
-| `token-statusline` | Adds live context bar to Claude Code status line |
-| `debug-hooks` | Diagnoses broken hook configurations with detailed validation output |
-| `task-brain-lite` | Decomposes complex tasks into prioritized, dependency-aware subtasks |
-| `llm-wiki` | Builds a persistent wiki Claude references instead of re-reading raw docs — up to 96% token savings on repeated knowledge |
-| `forge-changelog` | Reads the forge changelog and runs the template back-mapping loop (wraps `forge-db` MCP tools `get_changelog`, `compute_suggestions`, `apply_suggestion`) |
+| [`optimize-claudemd`](skills/context/optimize-claudemd/SKILL.md) | Rewrites a bloated CLAUDE.md under 300 words without dropping constraints |
+| [`check-claudemd-size`](skills/context/check-claudemd-size/SKILL.md) | Reports CLAUDE.md word/token count with color-coded warnings |
+| [`estimate-tokens`](skills/context/estimate-tokens/SKILL.md) | Estimates tokens in any file before loading it |
+| [`low-token-mode`](skills/context/low-token-mode/SKILL.md) | Terse response discipline for the rest of the session |
+| [`reset-context`](skills/context/reset-context/SKILL.md) | Safely resets context window when near full — prevents hard stops |
+| [`auto-compact`](skills/context/auto-compact/SKILL.md) **CC** | Tunes `autoCompactEnabled` / `autoCompactWindow` — auto-compacts instead of stopping |
+| [`manage-skills`](skills/context/manage-skills/SKILL.md) **CC** | Audits loaded skills, disables unused ones — reduces session overhead |
+| [`token-statusline`](skills/context/token-statusline/SKILL.md) **CC** | Adds live context bar to Claude Code status line |
+
+**[config](skills/config/README.md)** — settings.json and hooks, documented keys only (**CC**, all four)
+
+| Skill | What it does |
+|-------|-------------|
+| [`tune-settings`](skills/config/tune-settings/SKILL.md) | Diffs and applies token-saving settings (`autoMemoryEnabled`, `disableBundledSkills`, `disabledMcpjsonServers`) |
+| [`settings-diff`](skills/config/settings-diff/SKILL.md) | Shows before/after diff before writing any settings change |
+| [`project-isolation`](skills/config/project-isolation/SKILL.md) | Scopes skills and hooks to current project only |
+| [`debug-hooks`](skills/config/debug-hooks/SKILL.md) | Diagnoses broken hook configurations with detailed validation output |
+
+**[productivity](skills/productivity/README.md)** — workflow
+
+| Skill | What it does |
+|-------|-------------|
+| [`task-brain-lite`](skills/productivity/task-brain-lite/SKILL.md) | Decomposes complex tasks into prioritized, dependency-aware subtasks |
+| [`llm-wiki`](skills/productivity/llm-wiki/SKILL.md) | Builds a persistent wiki the agent reads instead of re-ingesting raw docs each session |
 
 **Agent:** `hook-error-fixer` — diagnoses and auto-fixes broken hook configurations.
 
 **Hook:** Session-start script that warns when CLAUDE.md exceeds size thresholds and validates settings.json.
 
-**Status line:**
+**Status line** (powerline segments, tmux "Night City" palette):
 ```
-ctx [████████░░] 82%  │  md:~650t
+ context_forge   main  Fable 5  ctx ███████░░░ 72%  md ~952t 
 ```
 
 ---
 
-## Forge — DB-backed scaffolding
+## Other agents (Codex, Gemini CLI)
 
-Three slash commands backed by the `forge-db` MCP server:
-
-| Command          | What it does                                                |
-|------------------|-------------------------------------------------------------|
-| `/scaffold`      | Create a project from a template stored in Postgres         |
-| `/changelog`     | Show recorded file/dependency changes for a project         |
-| `/sync-template` | Review recurring manual additions and fold them back in     |
-
-**Why facts live in Postgres:** templates, file contents, and exact dependency versions are read verbatim from the DB through MCP tools. The model copies — it does not invent template names or guess versions — and scaffolds run a real `typecheck`/`build` before being declared good. Retrieval + validation instead of fine-tuning.
-
-A `PostToolUse` hook (`record-change.mjs`) appends every `Write` / `Edit` to the `changelogs` table; `/sync-template` later analyses those rows and suggests template improvements.
-
-### Forge setup
+The `SKILL.md` format is shared by Claude Code, Codex and Gemini CLI. Install the skills you want with [skills.sh](https://skills.sh) (it lists them and asks which agents to install to):
 
 ```bash
-# 1. Install MCP server deps
-cd mcp && npm install && cd ..
-
-# 2. Point at your remote Postgres
-export FORGE_DATABASE_URL="postgres://user:pass@host:5432/forge"
-
-# 3. Create the schema (and an example template to test with)
-psql "$FORGE_DATABASE_URL" -f mcp/db/schema.sql
-psql "$FORGE_DATABASE_URL" -f mcp/db/seed-example.sql
+npx skills@latest add kyuna0312/context_forge            # interactive: pick skills + agents
+npx skills@latest add kyuna0312/context_forge -a codex -s task-brain-lite -s llm-wiki -y
 ```
 
-`.mcp.json` reads `${FORGE_DATABASE_URL}` from your environment, so make sure that variable is exported in the shell where you launch Claude Code. Without it, the forge half is inert — the token-saver half keeps working.
+Skip the **CC** skills there; they only make sense inside Claude Code.
 
-### MCP tools (`forge-db`)
-
-`list_templates`, `get_template`, `register_project`, `record_change`, `get_changelog`, `compute_suggestions`, `apply_suggestion`.
+| Component | Claude Code | Codex | Gemini CLI |
+|-----------|-------------|-------|------------|
+| 7 portable skills (context, productivity) | plugin | skills.sh | skills.sh |
+| 7 **CC** skills (settings, hooks, status line) | plugin | — | — |
+| Session-start hook, status line, `hook-error-fixer` agent | plugin | — | — |
 
 ---
 
@@ -82,8 +77,7 @@ psql "$FORGE_DATABASE_URL" -f mcp/db/seed-example.sql
 
 - Claude Code v2.1.97 or later (for `refreshInterval` support)
 - `python3` — used by the token status line script and hook validation
-- `node` ≥ 18 — runs the MCP server and the `record-change` hook
-- Postgres reachable via `$FORGE_DATABASE_URL` (forge half only — token-saver half does not need it)
+- `node` ≥ 18 — only for running the test suite
 
 ---
 
@@ -101,14 +95,14 @@ bash ~/context_forge/scripts/install.sh
 
 Registers the repo as a local plugin marketplace, installs the plugin,
 copies the status line script to `~/.claude/` (backing up a modified copy
-first), and warns if `node`/`python3` are missing. The install is a
+first), and warns if `python3` is missing. The install is a
 snapshot — re-run the script after pulling repo updates.
 
 ### Option B — Straight from GitHub (no clone)
 
 ```bash
 claude plugin marketplace add kyuna0312/context_forge
-claude plugin install context_forge@context_forge
+claude plugin install context-forge@context-forge
 ```
 
 ### Option C — Load in place (development)
@@ -136,7 +130,7 @@ Zero-dependency validation suite using Node's built-in test runner:
 node --test
 ```
 
-Validates every JSON file, hook config and event names, skill/command/agent frontmatter, shell and `.mjs` syntax, and cross-references (forge-db tool names used by commands/skills, file paths referenced in SKILL.md, the `.mcp.json` server script), then runs the hooks + statusline against sample input. Runs in CI on every push (`.github/workflows/test.yml`).
+Validates every JSON file, hook config and event names, skill/agent frontmatter, shell syntax, skill registration, and file paths referenced in SKILL.md, then runs the hook + statusline against sample input. Runs in CI on every push (`.github/workflows/test.yml`).
 
 ---
 
@@ -147,7 +141,7 @@ The status line shows live context window usage at the bottom of the terminal.
 **Step 1 — Copy script to permanent location:**
 
 ```bash
-cp ~/.claude/plugins/context_forge/scripts/statusline-command.sh ~/.claude/statusline-command.sh
+cp <repo>/scripts/statusline-command.sh ~/.claude/statusline-command.sh
 chmod +x ~/.claude/statusline-command.sh
 ```
 
@@ -172,16 +166,18 @@ echo '{"context_window":{"used_percentage":72},"workspace":{"current_dir":"'"$PW
   | bash ~/.claude/statusline-command.sh
 ```
 
-Expected output: `… Fable 5 │ ctx [███████░░░] 72% │ …` — the model name must render whole; a truncated name means the installed copy is outdated (re-run `install.sh`).
+Expected output ends with `Fable 5  ctx ███████░░░ 72%  md ~Nt` — the model name must render whole; a truncated name means the installed copy is outdated (re-run `install.sh`).
 
 **Color thresholds:**
 
-| Context % | Color  |
-|-----------|--------|
-| 0–49%     | Green  |
-| 50–74%    | Yellow |
-| 75–89%    | Orange |
-| 90–100%   | Red    |
+| Context % | Color                       |
+|-----------|-----------------------------|
+| 0–49%     | Green (`#49d575`)           |
+| 50–74%    | Yellow (`#f2c74b`)          |
+| 75–89%    | Purple (`#be59d6`)          |
+| 90–100%   | Red                         |
+
+The `` separators need a Nerd Font, the same one tmux powerline themes use.
 
 ---
 
@@ -215,17 +211,17 @@ value|value|value
 
 ### Example — session-start hook output
 
-**stdout (LTX, machine-readable):**
+Hook stdout is injected into Claude's context, so the hook prints **nothing** while every file is under threshold. Over threshold:
+
+**stdout (LTX, one row per offending file):**
 ```
 @v1:file|words|tokens|level
-~/.claude/CLAUDE.md|850|1105|critical
-./CLAUDE.md|320|416|ok
-~/.claude/settings.json|0|0|valid
+~/.claude/CLAUDE.md|850|1105|warn
 ```
 
-**stderr (human-readable, only when thresholds exceeded):**
+**stderr (human-readable):**
 ```
-⚠ TOKEN SAVER [CRITICAL]: ~/.claude/CLAUDE.md is 850 words (~1105 tokens). Run /optimize-claudemd
+⚠ TOKEN SAVER [WARNING]: ~/.claude/CLAUDE.md is 850 words (~1105 tokens). Consider /context-forge:optimize-claudemd.
 ```
 
 ### Skill Schemas
@@ -245,64 +241,32 @@ Each skill's `SKILL.md` contains a `## LTX Schema` section with field definition
 
 ```
 context_forge/
+├── .agents/adr/                 # Design decisions (ADRs)
 ├── .claude-plugin/
-│   ├── plugin.json              # Plugin manifest
-│   └── marketplace.json         # Marketplace metadata
+│   ├── plugin.json              # Plugin manifest — `skills` lists the shipped set explicitly
+│   └── marketplace.json         # Makes the repo its own single-plugin marketplace
 ├── .github/workflows/test.yml   # CI: node --test on every push/PR
-├── .mcp.json                    # Registers the forge-db MCP server
+├── CONTEXT.md                   # Domain glossary — the words this repo uses
+├── CHANGELOG.md
 ├── agents/
 │   └── hook-error-fixer.md      # Auto-diagnoses broken hooks
 ├── docs/
 │   └── ROADMAP.md               # Backlog + deliberate ceilings with upgrade paths
-├── commands/
-│   ├── scaffold.md              # /scaffold — create project from DB template
-│   ├── changelog.md             # /changelog — show recorded project changes
-│   └── sync-template.md         # /sync-template — apply template improvements
 ├── hooks/
-│   ├── hooks.json               # SessionStart + PostToolUse hook config
-│   └── scripts/
-│       └── session-start.sh     # CLAUDE.md size warning on startup
-├── mcp/
-│   ├── server.mjs               # forge-db MCP server — McpServer wiring
-│   ├── db.mjs                   # lazy pg.Pool + q() helper
-│   ├── record-change.mjs        # PostToolUse hook: Write/Edit → changelogs
-│   ├── package.json             # @modelcontextprotocol/sdk + pg + zod
-│   ├── tools.mjs                # All 7 forge-db tools (ordered registry)
-│   └── db/
-│       ├── schema.sql           # Postgres tables for templates + changelogs
-│       └── seed-example.sql     # One example template (node-ts-basic)
+│   ├── hooks.json               # SessionStart hook config
+│   └── scripts/session-start.sh # CLAUDE.md size warning on startup
 ├── scripts/
 │   ├── install.sh               # Registers local marketplace + installs plugin
 │   ├── uninstall.sh             # Uninstalls plugin, marketplace + statusline copy
+│   ├── list-skills.sh           # Prints <bucket>/<skill> for every SKILL.md
 │   └── statusline-command.sh    # Status line renderer (copy to ~/.claude/)
+├── skills/                      # One bucket per folder, README.md in each
+│   ├── context/                 # 8 skills — instruction-file size, token estimates, compaction, status line
+│   ├── config/                  # 4 skills — settings.json, hooks (debug-hooks ships validate-hooks.sh)
+│   └── productivity/            # 2 skills — task-brain-lite, llm-wiki
 ├── tests/
 │   └── repo.test.mjs            # Zero-dep validation suite (node --test)
-├── wiki/                        # Distilled knowledge base (llm-wiki skill) — read before raw docs
-│   ├── index.md                 # Page catalog
-│   ├── log.md                   # Append-only ingest log
-│   └── *.md                     # One page per topic
-└── skills/
-    ├── auto-compact/
-    ├── check-claudemd-size/
-    ├── debug-hooks/
-    │   └── scripts/
-    │       └── validate-hooks.sh
-    ├── estimate-tokens/
-    ├── forge-changelog/
-    │   └── references/
-    │       └── mcp-tool-reference.md
-    ├── llm-wiki/
-    │   └── references/
-    │       └── wiki-patterns.md
-    ├── low-token-mode/
-    ├── manage-skills/
-    ├── optimize-claudemd/
-    ├── project-isolation/
-    ├── reset-context/
-    ├── settings-diff/
-    ├── task-brain-lite/
-    ├── token-statusline/
-    └── tune-settings/
+└── wiki/                        # Distilled knowledge base (llm-wiki skill) — read before raw docs
 ```
 
 ---
