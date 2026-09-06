@@ -7,9 +7,7 @@ input=$(cat)
 # ── Colors (Lucy Edgerunner palette) ──────────────────────────────────────────
 lavender="\033[38;2;200;165;255m"   # #c8a5ff  — lavender
 gold="\033[38;2;255;217;125m"       # #ffd97d  — gold
-mint="\033[38;2;157;255;204m"       # #9dffcc  — mint
 muted="\033[38;2;196;176;216m"      # #c4b0d8  — muted
-peach="\033[38;2;255;179;160m"      # #ffb3a0  — peach
 reset="\033[0m"
 ctx_green="\033[38;2;157;255;204m"
 ctx_yellow="\033[38;2;255;217;125m"
@@ -37,13 +35,8 @@ print('\x1f'.join(str(x) for x in (
 home_dir="${HOME:-/root}"
 short_dir="${cwd/#$home_dir/\~}"
 # Keep at most 3 path segments
-short_dir=$(echo "$short_dir" | awk -F'/' '{
-  n = NF; start = (n > 3) ? n - 2 : 1;
-  out = "";
-  if (n > 3) out = "…/";
-  for (i = start; i <= n; i++) { out = out $i; if (i < n) out = out "/"; }
-  print out
-}')
+IFS=/ read -ra seg <<< "$short_dir"; n=${#seg[@]}
+(( n > 3 )) && short_dir="…/${seg[n-3]}/${seg[n-2]}/${seg[n-1]}"
 
 # ── Git branch ────────────────────────────────────────────────────────────────
 branch=""

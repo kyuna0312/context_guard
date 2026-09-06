@@ -35,7 +35,7 @@ Activate on intent, not on exact wording. Treat these intents as in-scope:
 Out of scope — defer or refuse:
 
 - Writing new changelog rows manually (use `record_change` in `/scaffold` or hooks, not from this skill).
-- Inventing a `change_type` outside `{file_created, file_edited, dep_added, stack_changed}`.
+- Inventing a `change_type` outside `{file_created, file_edited, dep_added}`.
 - Applying suggestions without explicit per-item user confirmation.
 
 ## Workflow 1 — Read changelog
@@ -81,7 +81,7 @@ Never apply suggestions on a `--apply` flag alone. The slash command's `--apply`
 These match the broader forge contract — break them and the skill produces lies:
 
 - Changelog rows, suggestion rows, template names, and package versions are **only** what the MCP tools returned. Do not invent or extrapolate.
-- `change_type` is a closed enum: `file_created`, `file_edited`, `dep_added`, `stack_changed`. Do not coin new types.
+- `change_type` is a closed enum: `file_created`, `file_edited`, `dep_added`. Do not coin new types.
 - If a row's `project_name` is `null` (denormalised fallback), say "unattached" — do not guess which project it belonged to.
 - If `compute_suggestions` returns nothing, the answer is "nothing pending", not a fabricated suggestion.
 - Group, sort, and filter rows in the response. Do not summarise them into invented prose.
@@ -97,7 +97,6 @@ Default to plain markdown (this skill speaks in chat, not via LTX). Use a short 
 - 09:11 — file_created — src/api/users.ts
 
 ### 2026-05-27
-- 17:30 — stack_changed — runtime: node18 → node20
 ```
 
 For suggestion review, use a numbered list so the user can reference items by number when choosing what to apply.
@@ -118,7 +117,7 @@ Do **not** call `record_change` from this skill — it is reserved for the hook 
 
 ### Reference files
 
-- **`references/mcp-tool-reference.md`** — full input/output schema for each forge-db tool used here, plus edge cases (null project_name, stack_delta, conflict semantics on `apply_suggestion`).
+- **`references/mcp-tool-reference.md`** — full input/output schema for each forge-db tool used here, plus edge cases (null project_name, conflict semantics on `apply_suggestion`).
 
 ### Related components
 

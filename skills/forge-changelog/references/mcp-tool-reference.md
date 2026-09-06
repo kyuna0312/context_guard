@@ -33,11 +33,10 @@ Load this reference when:
 | `id` | integer | Primary key, monotonically increasing |
 | `project_id` | integer or null | FK to `projects.id`; null if the project was not registered when the hook fired |
 | `project_name` | text or null | Denormalised — present even when `project_id` is null (set by the hook from a `LIKE` match on `root_path`) |
-| `change_type` | text | One of `file_created`, `file_edited`, `dep_added`, `stack_changed` |
+| `change_type` | text | One of `file_created`, `file_edited`, `dep_added` |
 | `file_path` | text or null | Set for file events |
 | `package` | text or null | Set only when `change_type = 'dep_added'` |
 | `version` | text or null | Optional pinned version that accompanied a `dep_added` row |
-| `stack_delta` | JSONB or null | Diff vs the template's stack for `stack_changed` rows (not yet emitted automatically — roadmap) |
 | `summary` | text or null | Free-form, e.g. `"Write /path/to/file"` from the hook |
 | `created_at` | timestamptz | UTC by default |
 
@@ -76,10 +75,10 @@ Load this reference when:
 |--------|------|-------|
 | `id` | integer | Suggestion id — pass to `apply_suggestion` |
 | `template_id` | integer | FK to `templates.id`; resolve id → name via `list_templates` (`get_template` only accepts a name) |
-| `kind` | text | Currently always `add_dep`; `add_file` and `change_stack` are reserved in the schema but unimplemented |
+| `kind` | text | Always `add_dep` (the only kind so far) |
 | `payload` | JSONB | For `add_dep`: `{"package": "<name>"}` |
 | `occurrences` | integer | Number of distinct projects the package appeared in (from the latest `compute_suggestions` run) |
-| `status` | text | `pending` (only ones returned), `applied`, or `dismissed` |
+| `status` | text | `pending` (only ones returned) or `applied` |
 | `created_at` | timestamptz | Time the suggestion first appeared |
 
 **Edge cases:**
@@ -109,8 +108,8 @@ Load this reference when:
 
 ```json
 {
-  "template": { "id": 1, "name": "node-ts-basic", "description": "...", "stack_json": {...}, "created_at": "...", "updated_at": "..." },
-  "files":    [ { "path": "...", "content": "...", "is_binary": false, "ord": 0 } ],
+  "template": { "id": 1, "name": "node-ts-basic", "description": "...", "stack_json": {...}, "created_at": "..." },
+  "files":    [ { "path": "...", "content": "...", "ord": 0 } ],
   "deps":     [ { "package": "...", "version": "...", "dev_dep": false } ]
 }
 ```
@@ -136,7 +135,6 @@ If a name → id reverse lookup is needed (e.g. user says "for the nextjs-trpc-d
 **Behaviour:**
 
 1. Loads the suggestion by id; errors with `No such suggestion` if not found.
-2. Errors on any `kind` other than `add_dep` (`add_file` / `change_stack` are reserved but unimplemented) — the status is *not* flipped for them.
 3. `INSERT INTO template_deps (...) ON CONFLICT (template_id, package) DO NOTHING RETURNING id`.
    - If the dep is already present at a different version, the existing row wins. To overwrite, the user must delete the existing row first.
 4. Updates the suggestion to `status='applied'`.

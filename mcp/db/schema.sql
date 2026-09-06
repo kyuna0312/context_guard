@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS templates (
   name         TEXT UNIQUE NOT NULL,        -- e.g. "nextjs-trpc-drizzle"
   description  TEXT,
   stack_json   JSONB NOT NULL DEFAULT '{}', -- { "framework": "next", "orm": "drizzle", ... }
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Files belonging to a template. content is a literal template string with
@@ -18,7 +17,6 @@ CREATE TABLE IF NOT EXISTS template_files (
   template_id  INTEGER NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
   path         TEXT NOT NULL,               -- relative path inside the new project
   content      TEXT NOT NULL DEFAULT '',
-  is_binary    BOOLEAN NOT NULL DEFAULT false,
   ord          INTEGER NOT NULL DEFAULT 0,
   UNIQUE (template_id, path)
 );
@@ -45,11 +43,10 @@ CREATE TABLE IF NOT EXISTS changelogs (
   id           SERIAL PRIMARY KEY,
   project_id   INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   project_name TEXT,                         -- denormalised fallback when project unknown
-  change_type  TEXT NOT NULL,                -- file_created | file_edited | dep_added | stack_changed
+  change_type  TEXT NOT NULL,                -- file_created | file_edited | dep_added
   file_path    TEXT,
   package      TEXT,                         -- set for dep_added
   version      TEXT,
-  stack_delta  JSONB,                        -- diff vs the template's stack, if any
   summary      TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -58,10 +55,10 @@ CREATE TABLE IF NOT EXISTS changelogs (
 CREATE TABLE IF NOT EXISTS template_suggestions (
   id                 SERIAL PRIMARY KEY,
   template_id        INTEGER NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-  kind               TEXT NOT NULL,          -- add_dep | add_file | change_stack
+  kind               TEXT NOT NULL,          -- add_dep (the only kind so far)
   payload            JSONB NOT NULL,         -- e.g. { "package": "zod", "seen_in": 4 }
   occurrences        INTEGER NOT NULL DEFAULT 1,
-  status             TEXT NOT NULL DEFAULT 'pending', -- pending | applied | dismissed
+  status             TEXT NOT NULL DEFAULT 'pending', -- pending | applied
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (template_id, kind, payload)
 );

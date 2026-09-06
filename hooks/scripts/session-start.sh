@@ -40,25 +40,12 @@ check_claudemd_size() {
   ltx_row "$file_path" "$word_count" "$token_estimate" "$level"
 }
 
+# Human warning only — settings.json has no words/tokens to report in the LTX schema.
 validate_settings_json() {
   local settings_path="$HOME/.claude/settings.json"
-
-  if [ ! -f "$settings_path" ]; then
-    ltx_row "$settings_path" "0" "0" "missing"
-    return 0
-  fi
-
-  if ! command -v python3 >/dev/null 2>&1; then
-    ltx_row "$settings_path" "0" "0" "skipped"
-    return 0
-  fi
-
-  if ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$settings_path" 2>/dev/null; then
-    ltx_row "$settings_path" "0" "0" "invalid"
-    ltx_human "⚠ TOKEN SAVER: settings.json has invalid JSON. Run /debug-hooks"
-  else
-    ltx_row "$settings_path" "0" "0" "valid"
-  fi
+  [ -f "$settings_path" ] && command -v python3 >/dev/null 2>&1 || return 0
+  python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$settings_path" 2>/dev/null \
+    || ltx_human "⚠ TOKEN SAVER: settings.json has invalid JSON. Run /debug-hooks"
 }
 
 # -ef guard: on case-insensitive filesystems (macOS default) CLAUDE.md and

@@ -24,7 +24,7 @@ export const tools = [
       const [tpl] = await q("SELECT * FROM templates WHERE name = $1", [name]);
       if (!tpl) throw new Error(`No template named "${name}". Call list_templates first.`);
       const files = await q(
-        "SELECT path, content, is_binary, ord FROM template_files WHERE template_id=$1 ORDER BY ord, path",
+        "SELECT path, content, ord FROM template_files WHERE template_id=$1 ORDER BY ord, path",
         [tpl.id]
       );
       const deps = await q(
@@ -62,10 +62,10 @@ export const tools = [
   {
     name: "record_change",
     description:
-      "Append a changelog entry. Normally called automatically by the hook, but can be called manually for stack changes.",
+      "Append a changelog entry. Normally called automatically by the hook, but can be called manually for dependency additions.",
     inputSchema: {
       project_name: z.string().optional(),
-      change_type: z.enum(["file_created", "file_edited", "dep_added", "stack_changed"]),
+      change_type: z.enum(["file_created", "file_edited", "dep_added"]),
       file_path: z.string().optional(),
       package: z.string().optional(),
       version: z.string().optional(),
@@ -96,9 +96,8 @@ export const tools = [
       limit: z.number().int().min(1).max(500).default(50),
     },
     handler: async ({ project_name, limit = 50 }) =>
-      project_name
-        ? q("SELECT * FROM changelogs WHERE project_name=$1 ORDER BY id DESC LIMIT $2", [project_name, limit])
-        : q("SELECT * FROM changelogs ORDER BY id DESC LIMIT $1", [limit]),
+      q("SELECT * FROM changelogs WHERE $1::text IS NULL OR project_name=$1 ORDER BY id DESC LIMIT $2",
+        [project_name ?? null, limit]),
   },
 
   {
@@ -146,8 +145,6 @@ export const tools = [
     handler: async ({ suggestion_id, version = "latest" }) => {
       const [s] = await q("SELECT * FROM template_suggestions WHERE id=$1", [suggestion_id]);
       if (!s) throw new Error("No such suggestion");
-      if (s.kind !== "add_dep")
-        throw new Error(`Suggestion kind "${s.kind}" is not implemented — only add_dep can be applied.`);
       const inserted = await q(
         `INSERT INTO template_deps (template_id, package, version)
          VALUES ($1,$2,$3) ON CONFLICT (template_id, package) DO NOTHING RETURNING id`,
