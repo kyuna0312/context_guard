@@ -250,6 +250,8 @@ context_forge/
 │   ├── plugin.json              # Plugin manifest — `skills` lists the shipped set explicitly
 │   └── marketplace.json         # Makes the repo its own single-plugin marketplace
 ├── .github/workflows/test.yml   # CI: node --test on every push/PR
+├── AGENTS.md                    # Codex / ChatGPT: read CLAUDE.md + what differs there
+├── GEMINI.md                    # Gemini CLI: same
 ├── CONTEXT.md                   # Domain glossary — the words this repo uses
 ├── CHANGELOG.md
 ├── agents/
