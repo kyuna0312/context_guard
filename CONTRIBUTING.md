@@ -1,6 +1,6 @@
 # Contributing
 
-Small repo, strict rules. Read [CLAUDE.md](CLAUDE.md) first — it is the rulebook for humans too.
+Small repo, strict rules. Read [CLAUDE.md](CLAUDE.md) first — it is the rulebook for humans too. Working from Codex or Gemini CLI? `AGENTS.md` / `GEMINI.md` point at it and list the harness differences.
 
 ## Setup
 
