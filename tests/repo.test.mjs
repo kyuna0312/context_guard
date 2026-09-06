@@ -147,6 +147,48 @@ test("statusline renders sample input (multi-word model name)", () => {
   assert.match(r.stdout, /72%/, `expected context percentage in: ${r.stdout}`);
 });
 
+const RGB = { green: "73;213;117", yellow: "242;199;75", purple: "190;89;214", red: "224;108;117" };
+const statusline = (input) =>
+  spawnSync("bash", [path.join(root, "scripts/statusline-command.sh")], { input: JSON.stringify(input), encoding: "utf8" });
+
+test("statusline: context colour thresholds (50 / 75 / 90)", () => {
+  for (const [pct, colour] of [[10, "green"], [50, "yellow"], [75, "purple"], [90, "red"]]) {
+    const r = statusline({ context_window: { used_percentage: pct }, workspace: { current_dir: os.tmpdir() }, model: { display_name: "M" } });
+    assert.equal(r.status, 0, r.stderr);
+    // segment = fg colour, then bg colour, then the text
+    assert.match(r.stdout, new RegExp(`38;2;${RGB[colour]}m\\x1b\\[48;2;[0-9;]+m ctx`), `${pct}% should be ${colour}: ${JSON.stringify(r.stdout)}`);
+  }
+});
+
+test("statusline: CLAUDE.md token colour thresholds (390 / 780 / 1300)", () => {
+  for (const [words, colour] of [[100, "green"], [300, "yellow"], [600, "purple"], [1000, "red"]]) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cf-md-"));
+    fs.writeFileSync(path.join(dir, "CLAUDE.md"), "w ".repeat(words));
+    const r = spawnSync("bash", [path.join(root, "scripts/statusline-command.sh")], {
+      input: JSON.stringify({ workspace: { current_dir: dir }, model: { display_name: "M" } }),
+      env: { ...process.env, HOME: dir },   // HOME has no CLAUDE.md of its own → only `dir` counts
+      encoding: "utf8",
+    });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, new RegExp(`38;2;${RGB[colour]}m\\x1b\\[48;2;[0-9;]+m md ~${Math.floor(words * 13 / 10)}t`), `${words} words should be ${colour}: ${JSON.stringify(r.stdout)}`);
+  }
+});
+
+test("validate-hooks.sh: passes on this repo, fails on a missing script", () => {
+  const script = path.join(root, "skills/config/debug-hooks/scripts/validate-hooks.sh");
+  const env = { ...process.env, CLAUDE_PLUGIN_ROOT: root };
+  let r = spawnSync("bash", [script, path.join(root, "hooks/hooks.json")], { env, encoding: "utf8" });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stdout, /Validation PASSED/);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cf-hooks-"));
+  const bad = path.join(dir, "hooks.json");
+  fs.writeFileSync(bad, JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: "command", command: `bash ${dir}/nope.sh`, timeout: 5 }] }] } }));
+  r = spawnSync("bash", [script, bad], { env, encoding: "utf8" });
+  assert.equal(r.status, 1, "missing script must fail validation");
+  assert.match(r.stderr, /Script missing/);
+});
+
 // The plugin's own hook warns at 600 words; the repo must not trip its own alarm.
 test("CLAUDE.md stays under the hook's 600-word warning threshold", () => {
   const words = fs.readFileSync(path.join(root, "CLAUDE.md"), "utf8").split(/\s+/).filter(Boolean).length;

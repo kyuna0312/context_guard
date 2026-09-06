@@ -4,10 +4,15 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]   # macOS = bash 3.2 + BSD coreutils, the primary user platform
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: node --test
+      - if: runner.os == 'Linux'
+        run: shellcheck -S warning scripts/*.sh hooks/scripts/*.sh skills/config/debug-hooks/scripts/*.sh

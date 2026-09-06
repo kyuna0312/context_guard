@@ -1,7 +1,7 @@
 {
   "name": "context-forge",
-  "version": "0.3.0",
-  "description": "Claude Code plugin for token-waste reduction: 14 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
+  "version": "0.3.1",
+  "description": "Claude Code plugin for token-waste reduction: 11 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
   "author": {
     "name": "kyuna0312",
     "email": "khatanzorigb@gmail.com"
@@ -20,10 +20,7 @@
   "skills": [
     "./skills/config/debug-hooks",
     "./skills/config/project-isolation",
-    "./skills/config/settings-diff",
     "./skills/config/tune-settings",
-    "./skills/context/auto-compact",
-    "./skills/context/check-claudemd-size",
     "./skills/context/estimate-tokens",
     "./skills/context/low-token-mode",
     "./skills/context/manage-skills",

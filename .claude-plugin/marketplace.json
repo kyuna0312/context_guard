@@ -1,16 +1,16 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "context-forge",
-  "version": "0.3.0",
-  "description": "Claude Code plugin for token-waste reduction: 14 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
+  "version": "0.3.1",
+  "description": "Claude Code plugin for token-waste reduction: 11 skills, a hook-error-fixer agent, a session-start CLAUDE.md size hook, and a live context status line.",
   "owner": {
     "name": "kyuna0312"
   },
   "plugins": [
     {
       "name": "context-forge",
-      "version": "0.3.0",
-      "description": "14 skills + 1 agent + session-start hook + status line for token-waste reduction in Claude Code; skills also run on Codex and Gemini CLI.",
+      "version": "0.3.1",
+      "description": "11 skills + 1 agent + session-start hook + status line for token-waste reduction in Claude Code; skills also run on Codex and Gemini CLI.",
       "author": {
         "name": "kyuna0312",
         "email": "khatanzorigb@gmail.com"

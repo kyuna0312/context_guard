@@ -1,6 +1,6 @@
 ---
 name: estimate-tokens
-description: Per-source token estimate of the setup: instruction files, skill descriptions, memory. Use for "what's eating my context", "estimate token usage".
+description: Per-source token estimate: instruction files (CLAUDE.md / AGENTS.md / GEMINI.md) with size thresholds, skill descriptions, memory. Use for "how big is my claude.md", "what's eating my context".
 ---
 
 # Estimate Tokens
@@ -25,7 +25,16 @@ Claude Code reads `CLAUDE.md`, Codex reads `AGENTS.md`, Gemini CLI reads `GEMINI
 wc -w ~/.claude/CLAUDE.md ./CLAUDE.md ./AGENTS.md ./GEMINI.md 2>/dev/null
 ```
 
-Report: `<file>: ~[words] words ≈ [words * 1.3] tokens`
+Report: `<file>: ~[words] words ≈ [words * 1.3] tokens  [STATUS]`
+
+| Words | Status | Action |
+|-------|--------|--------|
+| < 300 | Optimal | none |
+| 300–600 | Acceptable | monitor |
+| 600–1,000 | Bloated | run `optimize-claudemd` |
+| > 1,000 | Critical | optimize now |
+
+The SessionStart hook applies the same thresholds automatically and warns on stderr; don't repeat its report right after session start.
 
 ### Step 2: Scan Installed Skills
 
@@ -110,3 +119,4 @@ skills|2400|3120|warn
 ## Additional Resources
 
 - **`references/token-benchmarks.md`** — Token cost benchmarks for common setups
+- **`references/size-thresholds.md`** — instruction-file thresholds and what bloats them

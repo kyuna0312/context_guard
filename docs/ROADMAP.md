@@ -4,12 +4,11 @@ The backlog, plus the ponytail-style corners deliberately cut with a known
 ceiling. When one of these starts to hurt, this file says what the upgrade
 path is. Nothing here is a bug — bugs get fixed, not listed.
 
-## Deliberate ceilings (upgrade when it hurts)
+## Deliberate ceilings
 
-| Ceiling | Where | Upgrade path |
-|---------|-------|--------------|
-| Statusline reads only the `5h` rate-limit window | `statusline-command.sh` | Surface other windows when Claude Code exposes ones users watch |
-| Hooks and status line are Claude Code only; Codex and Gemini CLI get skills via skills.sh but no session-start check | `hooks/`, `scripts/` | Port `session-start.sh` to Codex `hooks.json` / Gemini `settings.json` hooks once their stdin contracts are verified |
+Live in the code as `ponytail:` comments (`grep -rn "ponytail:" scripts hooks skills`), each naming the ceiling and the upgrade path. Not duplicated here so they can't drift.
+
+Cross-harness gap: hooks and status line are Claude Code only; Codex / Gemini CLI get the skills via skills.sh but no session-start check. Port `session-start.sh` once their hook stdin contracts are verified.
 
 ## Backlog
 

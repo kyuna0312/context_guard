@@ -5,7 +5,7 @@ description: Rewrite a bloated CLAUDE.md / AGENTS.md / GEMINI.md under 300 words
 
 # Optimize Claude.md
 
-Read, analyze, and rewrite the agent instruction file (`CLAUDE.md`; `AGENTS.md` on Codex; `GEMINI.md` on Gemini CLI) to reduce token cost while preserving all meaningful constraints. Target: under 300 words (~390 tokens — the same "optimal" threshold check-claudemd-size and the status line use).
+Read, analyze, and rewrite the agent instruction file (`CLAUDE.md`; `AGENTS.md` on Codex; `GEMINI.md` on Gemini CLI) to reduce token cost while preserving all meaningful constraints. Target: under 300 words (~390 tokens — the same "optimal" threshold estimate-tokens and the status line use).
 
 If the file is already under 300 words, stop: report "already optimal" and
 change nothing. Optimizing an optimal file is pure churn.

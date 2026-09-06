@@ -26,7 +26,7 @@ check_claudemd_size() {
   local word_count token_estimate level
   # $((...)) strips the leading whitespace macOS wc emits
   word_count=$(( $(wc -w < "$file_path") ))
-  token_estimate=$(( word_count * 13 / 10 ))
+  token_estimate=$(( word_count * 13 / 10 ))   # ponytail: words × 1.3 estimate, not a tokenizer; good enough for a threshold
 
   if [ "$word_count" -ge "$CRIT_WORDS" ]; then
     level="critical"
@@ -51,8 +51,10 @@ validate_settings_json() {
 
 # -ef guard: on case-insensitive filesystems (macOS default) CLAUDE.md and
 # claude.md are the same file — without it the file is reported twice.
+# shellcheck disable=SC2088  # second arg is a display label, not a path
 check_claudemd_size "$HOME/.claude/CLAUDE.md" "~/.claude/CLAUDE.md"
 if ! [ "$HOME/.claude/claude.md" -ef "$HOME/.claude/CLAUDE.md" ]; then
+  # shellcheck disable=SC2088
   check_claudemd_size "$HOME/.claude/claude.md" "~/.claude/claude.md"
 fi
 

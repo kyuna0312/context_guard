@@ -98,13 +98,14 @@ check_hook_scripts() {
     [ "${line#CMD:}" = "$line" ] && continue
     local cmd="${line#CMD:}"
 
+    # ponytail: first path-looking token wins; a command with two paths (`cp a b`) checks only `a`
     local script_path=""
     for token in $cmd; do
       # Strip surrounding quotes — hook commands typically quote their paths
       token="${token%\"}"; token="${token#\"}"
       token="${token%\'}"; token="${token#\'}"
       case "$token" in
-        /*|~/*|./*|\$CLAUDE_PLUGIN_ROOT/*|\$HOME/*|\${CLAUDE_PLUGIN_ROOT}/*|\${HOME}/*)
+        /*|~/*|./*|'$CLAUDE_PLUGIN_ROOT'/*|'$HOME'/*|'${CLAUDE_PLUGIN_ROOT}'/*|'${HOME}'/*)
           script_path="$token"
           break
           ;;

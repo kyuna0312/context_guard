@@ -1,11 +1,12 @@
 ---
 name: tune-settings
-description: Claude Code only. Propose documented token-saving settings.json keys (autoMemoryEnabled, disableBundledSkills, disabledMcpjsonServers) with a diff. Use for "optimize settings.json", "disable auto memory".
+description: Claude Code only. Review and apply documented token-saving settings.json keys (auto memory, bundled skills, MCP servers, auto-compaction) with a diff and backup before every write.
+disable-model-invocation: true
 ---
 
 # Tune Settings
 
-Read and optimize `settings.json` (or `settings.local.json`) for minimal token usage. Show diff before writing.
+Read and optimize `settings.json` (or `settings.local.json`) for minimal token usage. Diff and backup before writing. User-invoked only (`/context-forge:tune-settings`): a skill that writes user config must never fire on a fuzzy phrase match.
 
 ## Step 1: Find Settings Files
 
@@ -34,7 +35,7 @@ fabricated key is silently ignored and the "optimization" is a placebo:**
 
 Note: skill *bodies* lazy-load — only frontmatter descriptions cost tokens
 every session. The biggest constant cost is usually CLAUDE.md itself; check
-that first (`/context-forge:check-claudemd-size`) before touching settings.
+that first (`estimate-tokens`) before touching settings.
 
 ## Step 3: Apply Token-Saving Config
 
@@ -55,22 +56,31 @@ Key settings explained:
 - `autoCompactEnabled: true` — Auto-compact instead of erroring at context limit (default, keep it)
 - `disabledMcpjsonServers` — Rejects listed `.mcp.json` servers so their tool schemas never load
 
+## Step 3b: Auto-compaction
+
+Auto-compaction is **on by default** (`autoCompactEnabled: true`); only check whether it was explicitly disabled. `autoCompactWindow` (100,000–1,000,000 tokens) sets when it fires; the `/autocompact` command configures it interactively — prefer that over hand-editing. Manual: `/compact`. A `PreCompact` hook can run custom logic first (`references/compact-strategies.md`; use a real path like `~/.claude/hooks/pre-compact.sh`, never `$CLAUDE_PLUGIN_ROOT`, in a user's settings).
+
 ## Step 4: Show Diff and Confirm
 
-Display before/after diff:
-```diff
-- "autoMemoryEnabled": true,
-+ "autoMemoryEnabled": false,
-+ "disableBundledSkills": true,
+One diff per file, minimal — never touch keys unrelated to the stated goal:
+
+```
+SETTINGS DIFF — ~/.claude/settings.json
+  "autoMemoryEnabled": true → false
+  + "disableBundledSkills": true
+Impact: auto memory off; bundled skills skipped at startup. Reversible: yes.
+Apply? (yes/no)
 ```
 
-Ask user to confirm scope: project settings or global settings.
+Ask user to confirm scope: project settings or global settings. Never write without an explicit yes.
 
-## Step 5: Write File
+## Step 5: Backup, then Write
 
-On confirmation, write the updated settings file.
+```bash
+cp ~/.claude/settings.json ~/.claude/settings.json.backup.$(date +%Y%m%d-%H%M%S)
+```
 
-**Warning:** Changing global settings affects all Claude Code sessions.
+Then write the updated file and print the backup path. **Warning:** global settings affect every Claude Code session.
 
 ## LTX Schema
 
@@ -98,3 +108,5 @@ autoCompactEnabled|true|true|keep
 ## Additional Resources
 
 - **`references/settings-reference.md`** — Full settings.json reference with token impact ratings
+- **`references/diff-safety.md`** — backup/restore convention, multi-file diffs
+- **`references/compact-strategies.md`** — PreCompact hook examples and compaction strategies

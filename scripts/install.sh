@@ -23,9 +23,11 @@ fi
 # unconditionally — that's what refreshes the snapshot on re-runs.
 # NOTE: updates are version-driven; bump .claude-plugin/*.json versions
 # for local changes to propagate.
-claude plugin marketplace add "$PLUGIN_DIR" 2>/dev/null || true
+# Failures stay visible: a silent `add` failure used to surface later as a
+# cryptic `update` error under set -e.
+claude plugin marketplace add "$PLUGIN_DIR" || echo "marketplace add returned non-zero (already registered?) — continuing"
 claude plugin marketplace update "$PLUGIN_NAME"
-claude plugin install "$PLUGIN_NAME@$PLUGIN_NAME" 2>/dev/null || true
+claude plugin install "$PLUGIN_NAME@$PLUGIN_NAME" || echo "plugin install returned non-zero (already installed?) — continuing"
 claude plugin update "$PLUGIN_NAME@$PLUGIN_NAME"
 
 # Pre-0.3.0 registered the plugin as context_forge (underscore) — remove it so

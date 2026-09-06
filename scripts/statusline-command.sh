@@ -21,6 +21,7 @@ B() { printf '\033[48;2;%sm' "$1"; }
 bold=$'\033[1m'; reset=$'\033[0m'
 
 # ── Extract fields (\x1f-separated: model names and paths contain spaces) ───
+# ponytail: spawns python3 every refresh (~30 ms); jq is not guaranteed on macOS, bash has no JSON. Fine at refreshInterval 30.
 IFS=$'\x1f' read -r cwd model used_pct rl_pct <<< "$(echo "$input" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
@@ -36,6 +37,7 @@ print('\x1f'.join(str(x) for x in (
 " 2>/dev/null || printf '\x1f\x1f\x1f')"
 
 # ── Directory: like tmux #{b:pane_current_path} — basename only ───────────────
+# ponytail: basename only, so two projects named `api` look identical; show parent/basename if that bites
 short_dir="${cwd##*/}"; [ -n "$short_dir" ] || short_dir="${cwd/#$HOME/\~}"
 
 # ── Git branch ────────────────────────────────────────────────────────────────
@@ -73,6 +75,7 @@ if [ "$total_md" -gt 0 ]; then
 fi
 
 # ── Rate limit (only when it matters) ─────────────────────────────────────────
+# ponytail: reads only the 5h window; add 7d when Claude Code exposes one users actually watch
 rl_part=""; rl_color="$yellow"
 if [ -n "$rl_pct" ]; then
   rl_int=$(printf "%.0f" "$rl_pct" 2>/dev/null || echo 0)

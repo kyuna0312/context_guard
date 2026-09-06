@@ -1,6 +1,7 @@
 ---
 name: token-statusline
-description: Claude Code only. Install the context-usage status line (script + settings.json statusLine). Use for "add token counter to status line", "show context usage in status bar".
+description: Claude Code only. Install the context-usage status line: copy the script to ~/.claude and add the statusLine block to settings.json.
+disable-model-invocation: true
 ---
 
 # Token Status Line

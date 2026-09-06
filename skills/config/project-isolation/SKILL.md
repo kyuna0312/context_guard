@@ -1,6 +1,7 @@
 ---
 name: project-isolation
-description: Claude Code only. Scope a session to the current project via CLAUDE.md scope block and settings.local.json. Use for "isolate project context", "context from wrong project".
+description: Claude Code only. Scope a session to the current project: a CLAUDE.md scope block plus settings.local.json (autoMemoryEnabled, disabledMcpjsonServers).
+disable-model-invocation: true
 ---
 
 # Project Isolation

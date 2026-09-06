@@ -1,5 +1,14 @@
 # context-forge
 
+## 0.3.1
+
+- `settings-diff` and `auto-compact` folded into `tune-settings`; `check-claudemd-size` folded into `estimate-tokens` (14 → 11 skills, references kept).
+- Config-writing skills (`tune-settings`, `project-isolation`, `token-statusline`) are user-invoked (`disable-model-invocation: true`).
+- CI runs on macOS too, plus shellcheck; behaviour tests for statusline colour thresholds and `validate-hooks.sh`.
+- `wiki/` removed: README is the single source (flows, thresholds, smoke one-liners folded in) and now leads with the status line and hook. Deliberate corner-cuts are `ponytail:` comments in the scripts; ROADMAP points at them instead of duplicating.
+- One documented install route (`claude plugin marketplace add` + `install`); `install.sh` no longer hides marketplace/install failures.
+
+
 ## 0.3.0
 
 - **Breaking**: the forge half (Postgres-backed `forge-db` MCP server, `scaffold`/`changelog`/`sync-template`/`forge-changelog`, the `record-change` hook, `mcp/`) is removed. The plugin is token-saver only.
